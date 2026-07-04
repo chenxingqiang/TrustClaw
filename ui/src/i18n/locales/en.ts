@@ -458,6 +458,11 @@ export const en: TranslationMap = {
     expandLeft: "Expand left panel",
     collapseRight: "Collapse right panel",
     expandRight: "Expand right panel",
+    agentPackLabel: "Domain agent",
+    agentPackLoading: "Loading…",
+    agentPackSaving: "Saving…",
+    agentPackFromAgent: "From OpenClaw agent profile",
+    agentPackFromDefault: "Using default agent pack",
   },
   skillWorkshop: {
     header: {

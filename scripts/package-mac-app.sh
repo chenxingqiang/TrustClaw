@@ -2,11 +2,12 @@
 set -euo pipefail
 
 # Build and bundle OpenClaw into a minimal .app we can open.
-# Outputs to dist/OpenClaw.app
+# Outputs to dist/${MAC_APP_NAME}.app (default: OpenClaw.app)
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 source "$ROOT_DIR/scripts/lib/plistbuddy.sh"
-APP_ROOT="$ROOT_DIR/dist/OpenClaw.app"
+MAC_APP_NAME="${MAC_APP_NAME:-OpenClaw}"
+APP_ROOT="$ROOT_DIR/dist/${MAC_APP_NAME}.app"
 BUILD_ROOT="$ROOT_DIR/apps/macos/.build"
 PRODUCT="OpenClaw"
 MLX_TTS_HELPER_PRODUCT="openclaw-mlx-tts"
@@ -214,6 +215,7 @@ if [ ! -f "$INFO_PLIST_SRC" ]; then
 fi
 cp "$INFO_PLIST_SRC" "$APP_ROOT/Contents/Info.plist"
 plist_set_string_required "$APP_ROOT/Contents/Info.plist" CFBundleIdentifier "$BUNDLE_ID"
+plist_set_string_required "$APP_ROOT/Contents/Info.plist" CFBundleName "$MAC_APP_NAME"
 plist_set_string_required "$APP_ROOT/Contents/Info.plist" CFBundleShortVersionString "$APP_VERSION"
 plist_set_string_required "$APP_ROOT/Contents/Info.plist" CFBundleVersion "$APP_BUILD"
 plist_set_string_required "$APP_ROOT/Contents/Info.plist" OpenClawBuildTimestamp "$BUILD_TS"

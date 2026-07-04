@@ -457,6 +457,11 @@ export const zh_CN: TranslationMap = {
     expandLeft: "展开左侧面板",
     collapseRight: "收起右侧面板",
     expandRight: "展开右侧面板",
+    agentPackLabel: "领域 Agent",
+    agentPackLoading: "加载中…",
+    agentPackSaving: "保存中…",
+    agentPackFromAgent: "来自 OpenClaw Agent 配置",
+    agentPackFromDefault: "使用默认 Agent Pack",
   },
   skillWorkshop: {
     header: {

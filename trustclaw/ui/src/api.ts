@@ -99,6 +99,7 @@ export interface AgentChatRequest {
 export interface RuntimeContextResponse {
   session_id: string;
   user_query: string;
+  agent_pack_id?: string;
   pipeline_stages: {
     text2sql?: { sql?: string; duration_ms?: number };
     db_query?: { raw_data?: unknown };

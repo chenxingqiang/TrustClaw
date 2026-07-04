@@ -91,11 +91,12 @@ describe("trustclaw-ptds plugin", () => {
       "/api/ptds/audit/events",
       "/api/ptds/tables",
       "/api/ptds/browse",
+      "/api/ptds/agent-packs",
       "/api/agent/chat",
       "/trustclaw",
     ]);
     expect(routes.every((route) => route.auth === "plugin")).toBe(true);
-    expect(routes.filter((route) => route.match === "exact").length).toBe(19);
+    expect(routes.filter((route) => route.match === "exact").length).toBe(20);
     expect(routes.find((route) => route.path === "/trustclaw")?.match).toBe("prefix");
     expect(registerTool).toHaveBeenCalledTimes(2);
     expect(on).toHaveBeenCalledWith("before_prompt_build", expect.any(Function));

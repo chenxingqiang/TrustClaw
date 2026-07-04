@@ -361,6 +361,14 @@ export class OpenClawApp extends LitElement {
 
   @state() ptdsLeftRailOpen = true;
   @state() ptdsRightRailOpen = true;
+  @state() ptdsAgentPacks: import("./controllers/trustclaw-ptds.ts").TrustclawAgentPackSummary[] =
+    [];
+  @state() ptdsAgentPacksLoading = false;
+  @state() ptdsAgentPacksError: string | null = null;
+  @state() ptdsSessionAgentPackId: string | null = null;
+  @state() ptdsSessionAgentPackSource: "session" | "openclaw_agent" | "default" | null = null;
+  @state() ptdsSessionAgentPackSaving = false;
+  @state() ptdsAgentPackSessionKey: string | null = null;
 
   @state() nodesLoading = false;
   @state() nodes: Array<Record<string, unknown>> = [];

@@ -1343,10 +1343,58 @@
   border-inline: 1px solid color-mix(in srgb, var(--border) 62%, transparent);
 }
 
+.trustclaw-ptds-workbench__chat-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.trustclaw-ptds-agent-pack {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  padding: 0.55rem 0.85rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 62%, transparent);
+  background: color-mix(in srgb, var(--bg-elevated) 72%, transparent);
+}
+
+.trustclaw-ptds-agent-pack__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.trustclaw-ptds-agent-pack__select {
+  min-width: 12rem;
+  max-width: min(24rem, 100%);
+  font-size: 0.85rem;
+}
+
+.trustclaw-ptds-agent-pack__status,
+.trustclaw-ptds-agent-pack__hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.trustclaw-ptds-agent-pack__error {
+  font-size: 0.75rem;
+  color: var(--danger, #c44);
+}
+
 .trustclaw-ptds-workbench__chat > * {
   flex: 1;
   min-height: 0;
   min-width: 0;
+}
+
+.trustclaw-ptds-workbench__chat > .trustclaw-ptds-agent-pack {
+  flex: 0 0 auto;
+  min-height: auto;
 }
 
 .trustclaw-ptds-workbench__chat .chat-workbench,

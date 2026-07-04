@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { z } from "zod";
 import type { TrustclawPluginConfig } from "../../../trustclaw/ptds/config.js";
 import { resolveTrustclawPaths } from "../../../trustclaw/ptds/config.js";
+import { getAgentPackRegistry } from "../../../trustclaw/runtime/agent-pack/index.js";
 import type { Text2SqlLlmCaller } from "../../../trustclaw/runtime/pipeline/index.js";
 import { runTrustclawChat } from "../../../trustclaw/runtime/pipeline/index.js";
 import { methodIs, readJsonBody, sendJson } from "./http-utils.js";
@@ -10,6 +11,7 @@ const chatRequestSchema = z
   .object({
     session_id: z.string().trim().min(1),
     message: z.string().trim().min(1),
+    agent_pack_id: z.string().trim().min(1).optional(),
   })
   .strict();
 
@@ -48,10 +50,16 @@ export function createAgentChatHandler(
     }
 
     const paths = pathOverrides(pluginConfig);
+    const registry = getAgentPackRegistry({
+      agentsDir: pluginConfig?.agentPacksDir,
+      defaultPackId: pluginConfig?.defaultAgentPack,
+    });
+    const agentPack = registry.resolve({ packId: body.data.agent_pack_id });
     const result = await runTrustclawChat(body.data, {
       dbPath: paths.dbPath,
       auditDir: paths.auditDir,
       llm: deps.llm,
+      agentPack,
     });
 
     if (!result.ok) {

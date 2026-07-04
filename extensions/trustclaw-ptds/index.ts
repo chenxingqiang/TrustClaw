@@ -3,6 +3,11 @@ import type { TrustclawPluginConfig } from "../../trustclaw/ptds/config.js";
 import { createOpenAiText2SqlLlm } from "../../trustclaw/runtime/text2sql/openai-llm.js";
 import { buildTrustclawPtdsAgentGuidance } from "./src/agent-guidance.js";
 import { createAgentChatHandler } from "./src/agent-routes.js";
+import { createAgentPacksHandler } from "./src/agent-pack-routes.js";
+import {
+  createSessionAgentPackGetHandler,
+  createSessionAgentPackPutHandler,
+} from "./src/session-agent-pack-routes.js";
 import { createPtdsAuditEventsHandler } from "./src/audit-routes.js";
 import {
   createComplianceImportBundledHandler,
@@ -30,6 +35,7 @@ import {
   createPtdsTablesHandler,
 } from "./src/ptds-routes.js";
 import { createTrustclawUiHandler } from "./src/ui-routes.js";
+import { methodIs, sendJson } from "./src/http-utils.js";
 import { PTDS_SEED_GLP1_AST_V2_JSON, PTDS_SEED_NRDL_REFERENCE_GLP1_JSON } from "../../trustclaw/ptds/paths.js";
 
 function readPluginConfig(
@@ -43,6 +49,12 @@ function readPluginConfig(
     auditDir: typeof pluginConfig.auditDir === "string" ? pluginConfig.auditDir : undefined,
     evidenceDir:
       typeof pluginConfig.evidenceDir === "string" ? pluginConfig.evidenceDir : undefined,
+    agentPacksDir:
+      typeof pluginConfig.agentPacksDir === "string" ? pluginConfig.agentPacksDir : undefined,
+    defaultAgentPack:
+      typeof pluginConfig.defaultAgentPack === "string"
+        ? pluginConfig.defaultAgentPack
+        : undefined,
   };
 }
 
@@ -162,6 +174,29 @@ export default definePluginEntry({
       handler: createPtdsBrowseHandler(cfg),
     });
     api.registerHttpRoute({
+      path: "/api/ptds/agent-packs",
+      auth: "plugin",
+      match: "exact",
+      handler: createAgentPacksHandler(cfg),
+    });
+    api.registerHttpRoute({
+      path: "/api/ptds/session/agent-pack",
+      auth: "plugin",
+      match: "exact",
+      handler: async (req, res) => {
+        const getHandler = createSessionAgentPackGetHandler(cfg);
+        const putHandler = createSessionAgentPackPutHandler(cfg);
+        if (methodIs(req, "GET")) {
+          return getHandler(req, res);
+        }
+        if (methodIs(req, "PUT")) {
+          return putHandler(req, res);
+        }
+        sendJson(res, 405, { status: "error", message: "Method not allowed." });
+        return true;
+      },
+    });
+    api.registerHttpRoute({
       path: "/api/agent/chat",
       auth: "plugin",
       match: "exact",
@@ -173,10 +208,12 @@ export default definePluginEntry({
     api.registerTool(createTrustclawPtdsWriteToolFactory(cfg, { llm: text2sqlLlm }), {
       name: "trustclaw_ptds_write",
     });
-    api.on("before_prompt_build", async (event) =>
+    api.on("before_prompt_build", async (event, ctx) =>
       buildTrustclawPtdsAgentGuidance({
         pluginConfig: cfg,
         messages: event?.messages,
+        sessionKey: ctx?.sessionKey ?? ctx?.sessionId,
+        openclawAgentId: ctx?.agentId,
       }),
     );
     api.on("before_tool_call", createTrustclawPtdsDataConsentHook(cfg));

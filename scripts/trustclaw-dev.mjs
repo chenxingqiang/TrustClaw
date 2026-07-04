@@ -4,14 +4,17 @@ import { execSync, spawn, spawnSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  TRUSTCLAW_DEFAULT_UI_PORT,
+  resolveTrustclawGatewayPort,
+} from "./lib/trustclaw-defaults.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, "..");
 const children = [];
 
-const gatewayPort =
-  process.env.OPENCLAW_GATEWAY_PORT ?? process.env.TRUSTCLAW_GATEWAY_PORT ?? "19001";
-const uiPort = process.env.TRUSTCLAW_UI_PORT ?? "5174";
+const gatewayPort = resolveTrustclawGatewayPort();
+const uiPort = process.env.TRUSTCLAW_UI_PORT ?? TRUSTCLAW_DEFAULT_UI_PORT;
 
 function listenerPid(port) {
   try {

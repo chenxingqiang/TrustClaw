@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://trustclaw.local/schemas/agent-pack.v1.json",
+  "title": "TrustClaw Business Agent Pack",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "version",
+    "displayName",
+    "tools",
+    "prompts",
+    "data",
+    "rules",
+    "pipeline",
+    "consent",
+    "audit"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,63}$"
+    },
+    "version": { "type": "string" },
+    "displayName": {
+      "type": "object",
+      "required": ["zh-CN", "en"],
+      "additionalProperties": { "type": "string" },
+      "properties": {
+        "zh-CN": { "type": "string" },
+        "en": { "type": "string" }
+      }
+    },
+    "domain": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "openclaw": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "agentId": { "type": "string" },
+        "persona": { "type": "string" }
+      }
+    },
+    "tools": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["read"],
+      "properties": {
+        "read": { "type": "string" },
+        "write": { "type": "string" }
+      }
+    },
+    "prompts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["system"],
+      "properties": {
+        "system": { "type": "string" },
+        "text2sql": { "type": "string" },
+        "personalWrite": { "type": "string" }
+      }
+    },
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["readTables"],
+      "properties": {
+        "readTables": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "writeTables": { "type": "array", "items": { "type": "string" } },
+        "snapshotView": { "type": "string" }
+      }
+    },
+    "rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["engine"],
+      "properties": {
+        "engine": {
+          "type": "string",
+          "enum": ["ast-compliance", "nrdl-table", "none"]
+        },
+        "activeStandardHint": { "type": "string" },
+        "drugIdResolver": { "type": "string" }
+      }
+    },
+    "pipeline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stages", "decisionBuilder"],
+      "properties": {
+        "stages": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "TEXT2SQL_GEN",
+              "DB_QUERY",
+              "RULE_EVAL",
+              "AGENT_DECISION",
+              "LEDGER_COMMIT"
+            ]
+          },
+          "minItems": 1
+        },
+        "decisionBuilder": {
+          "type": "string",
+          "enum": ["glp1-decision", "pass-through"]
+        }
+      }
+    },
+    "consent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["read"],
+      "properties": {
+        "read": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["allowAlways"],
+          "properties": { "allowAlways": { "type": "boolean" } }
+        },
+        "write": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["allowAlways"],
+          "properties": { "allowAlways": { "type": "boolean" } }
+        }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["businessComponent", "decisionComponent"],
+      "properties": {
+        "businessComponent": { "type": "string" },
+        "decisionComponent": { "type": "string" },
+        "ruleEvalComponent": { "type": "string" }
+      }
+    }
+  }
+}

@@ -678,7 +678,7 @@ pnpm ui:build                      # Control UI assets only
 node scripts/run-vitest.mjs trustclaw/ptds/init.test.ts
 node scripts/run-vitest.mjs extensions/trustclaw-ptds/index.test.ts
 
-pnpm openclaw gateway run          # prod-style :18789 after trustclaw:ui:build
+pnpm openclaw gateway run          # :19001 after trustclaw:setup
 ```
 
 ---

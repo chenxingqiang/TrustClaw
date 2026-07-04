@@ -6,7 +6,7 @@ TrustClaw runs **on OpenClaw Gateway** with the `trustclaw-ptds` plugin. Product
 
 ```bash
 pnpm install --config.minimumReleaseAge=0
-pnpm trustclaw:setup          # enable plugins.entries.trustclaw-ptds (default + dev profiles)
+pnpm trustclaw:setup          # enable plugin + gateway.port 19001 (default + dev profiles)
 pnpm trustclaw:dev            # gateway :19001 + Vite UI :5174
 ```
 
@@ -14,10 +14,9 @@ Open either:
 
 | URL                                 | Experience                                                                               |
 | ----------------------------------- | ---------------------------------------------------------------------------------------- |
-| `http://127.0.0.1:19001/`           | **TrustClaw dev** — OpenClaw Control UI → **PTDS Console** (use `:19001`, not `:18789`)  |
+| `http://127.0.0.1:19001/`           | **TrustClaw** — Control UI → **PTDS Console** (default after `trustclaw:setup`)         |
 | `http://127.0.0.1:5174/trustclaw/`  | Standalone PTDS Runtime Console (dev, hot reload; center chat iframe to gateway `/chat`) |
-| `http://127.0.0.1:18789/`           | Default OpenClaw gateway (no TrustClaw dev plugin unless configured separately)          |
-| `http://127.0.0.1:18789/trustclaw/` | Production-style bundled console (after `pnpm trustclaw:ui:build`)                       |
+| `http://127.0.0.1:19001/trustclaw/` | Bundled console (after `pnpm trustclaw:ui:build` + gateway on `:19001`)                  |
 
 ## Gateway auth (dev)
 
@@ -100,7 +99,7 @@ After setup, **start a new chat session** (or `/new`) so the updated system prom
 ## Architecture (TrustClaw × OpenClaw)
 
 ```
-OpenClaw Gateway (:19001 dev, :18789 prod)
+OpenClaw Gateway (TrustClaw default **:19001**; upstream OpenClaw alone still uses :18789)
   ├── Control UI (/)           → default tab: PTDS Console (native chat + side rails)
   ├── /trustclaw/*           → TrustClaw demo SPA (plugin static; embed=left|right)
   └── /api/ptds/*, /api/agent/chat → PTDS plugin APIs
@@ -114,11 +113,17 @@ Personal data stays in `~/.openclaw/state/local_ptds.db`. See `OPENCLAW_REUSE.md
 pnpm trustclaw:setup
 pnpm trustclaw:ui:build
 pnpm openclaw gateway run
-# → http://127.0.0.1:18789/  (PTDS Console tab)
+# → http://127.0.0.1:19001/  (PTDS Console tab; requires trustclaw:setup first)
 ```
 
 ## Branding note (D13)
 
 - **Product brand:** TrustClaw
 - **CLI / package:** still `openclaw` during V1
-- **Mac DMG:** upstream OpenClaw app; TrustClaw value is Gateway plugin + console UI
+- **Mac DMG:** `pnpm trustclaw:mac:dist` → `dist/TrustClaw-<version>.dmg` (menu bar shows **TrustClaw**; internal binary remains OpenClaw)
+
+```bash
+# Local debug DMG (ad-hoc sign when no Developer ID cert)
+ALLOW_ADHOC_SIGNING=1 BUILD_ARCHS=arm64 SKIP_NOTARIZE=1 SKIP_DSYM=1 BUILD_CONFIG=debug \
+  pnpm trustclaw:mac:dist
+```

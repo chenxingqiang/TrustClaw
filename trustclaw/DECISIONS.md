@@ -20,11 +20,14 @@
 | **D14** | 业务规则 | 禁止 TS 硬编码 GLP-1 规则；仅 SQLite 种子 | **approved** | product | |
 | **D15** | 多 Agent 路由 | V1 仅 GLP-1；Coordinator 接口预留 | **deferred** | product | Phase 3 |
 | **D16** | 外部 NRDL 参考表订阅（B 类） | HTTPS/JSON 拉取 → 本地 `nrdl_drug_registry` + `nrdl_payment_rules`；不动个人表；consent + `REFERENCE_SYNC` 审计；无运行时远程 DB | **approved** | product | Task 502 |
+| **D17** | Business Agent Pack 契约 | 声明式 `agent.pack.json` + zod 校验；平台工具与规则引擎可复用 | **approved** | product | Phase 2.5 |
+| **D18** | 默认 Agent Pack | `glp1-eligibility`；OpenClaw `agentId` 可映射到其他 pack | **approved** | product | |
+| **D19** | 多 Agent 路由 UI | V1 仅 API/hook 解析；Panel C 选择器与 session 绑定属 Phase 3 | **deferred** | product | 延续 D15 |
 
 ## 生效说明
 
 - **D1–D4, D6–D14**：可立即进入 Development（按 `ROADMAP.md` 依赖顺序）。
-- **D5, D15**：已确认方向，但 **deferred** — V1 不得实现频道桥接或多 Agent 路由。
+- **D5, D15, D19**：已确认方向，但 **deferred** — V1 不得实现频道桥接、多 Agent UI 路由或 session Coordinator。
 - 变更已确认方案需新开决策项，不得静默偏离。
 
 ## 规格书 V1 ↔ 实现（已对齐）

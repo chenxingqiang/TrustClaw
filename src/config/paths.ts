@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { resolveHomeRelativePath, resolveRequiredHomeDir } from "../infra/home-dir.js";
 import { parseTcpPort } from "../infra/tcp-port.js";
+import { TRUSTCLAW_DEFAULT_GATEWAY_PORT } from "./trustclaw-product-defaults.js";
 import type { OpenClawConfig } from "./types.js";
 
 /**
@@ -274,7 +275,7 @@ export function resolveDefaultConfigCandidates(
   return candidates;
 }
 
-export const DEFAULT_GATEWAY_PORT = 18789;
+export const DEFAULT_GATEWAY_PORT = TRUSTCLAW_DEFAULT_GATEWAY_PORT;
 
 /**
  * Gateway lock directory (ephemeral).

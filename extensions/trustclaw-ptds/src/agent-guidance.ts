@@ -1,48 +1,12 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import type { TrustclawPluginConfig } from "../../../trustclaw/ptds/config.js";
 import { resolveTrustclawPaths } from "../../../trustclaw/ptds/config.js";
 import { buildPtdsHealthProfileSummary } from "../../../trustclaw/ptds/profile-summary.js";
-import { TRUSTCLAW_PTDS_QUERY_TOOL, TRUSTCLAW_PTDS_WRITE_TOOL } from "../../../trustclaw/runtime/constants.js";
-
-const here = path.dirname(fileURLToPath(import.meta.url));
-
-function loadC3poPtdsSystemPreset(): string {
-  const presetPath = path.resolve(
-    here,
-    "..",
-    "..",
-    "..",
-    "trustclaw",
-    "agents",
-    "glp1",
-    "prompts",
-    "c3po-ptds-system.v1.md",
-  );
-  try {
-    return readFileSync(presetPath, "utf8").trim();
-  } catch {
-    return [
-      "You are C3-PO, the TrustClaw PTDS Console assistant — not Claude Code or a generic coding bot.",
-      "Help with local PTDS health Q&A (GLP-1 demo) via trustclaw_ptds_query; record vitals via trustclaw_ptds_write.",
-    ].join("\n");
-  }
-}
-
-const C3PO_PTDS_SYSTEM_PRESET = loadC3poPtdsSystemPreset();
-
-const STATIC_GUIDANCE = [
-  "## Active tools",
-  `**Read (GLP-1 Q&A):** For eligibility, medication judgment, NRDL reimbursement — call **${TRUSTCLAW_PTDS_QUERY_TOOL}** with the user's question.`,
-  `**Write (record vitals):** When the user asks to save/update weight, BMI, HbA1c, blood pressure, or device metrics into PTDS — call **${TRUSTCLAW_PTDS_WRITE_TOOL}** with a clear natural-language write request. Never create SQLite files in the working directory.`,
-  "Each tool call triggers **explicit user consent**; never bypass approval.",
-  "Rely on tool results; do not invent vitals, SQL, or rule outcomes.",
-  "",
-  "## Post-mount briefing",
-  "When a **Mounted PTDS profile** section appears below and you have not yet summarized it in this session, proactively:",
-  "1) greet the user, 2) summarize key metrics and risk flags in 3–5 bullets, 3) explain that PTDS-backed reads/writes require explicit data-use approval per tool call.",
-].join("\n");
+import {
+  buildAgentPackSystemContext,
+  getAgentPackRegistry,
+  resolveSessionAgentPack,
+  type ResolvedAgentPack,
+} from "../../../trustclaw/runtime/agent-pack/index.js";
 
 function sessionHasMountBriefing(messages: unknown[] | undefined): boolean {
   if (!Array.isArray(messages)) {
@@ -79,10 +43,11 @@ function sessionHasMountBriefing(messages: unknown[] | undefined): boolean {
 
 function formatMountedProfileContext(
   profile: ReturnType<typeof buildPtdsHealthProfileSummary>,
+  pack: ResolvedAgentPack,
   needsBriefing: boolean,
 ): string {
   const lines = [
-    "## Mounted PTDS profile (local SQLite)",
+    `## Mounted PTDS profile (agent pack: ${pack.id})`,
     "```json",
     JSON.stringify(
       {
@@ -112,23 +77,47 @@ function formatMountedProfileContext(
   return lines.join("\n");
 }
 
+function resolvePack(
+  pluginConfig: TrustclawPluginConfig | undefined,
+  sessionKey?: string,
+  openclawAgentId?: string,
+): ResolvedAgentPack {
+  if (sessionKey?.trim()) {
+    return resolveSessionAgentPack({
+      sessionKey,
+      openclawAgentId,
+      pluginConfig,
+    }).pack;
+  }
+  const registry = getAgentPackRegistry({
+    agentsDir: pluginConfig?.agentPacksDir,
+    defaultPackId: pluginConfig?.defaultAgentPack,
+  });
+  return registry.resolve({ openclawAgentId });
+}
+
 export function buildTrustclawPtdsAgentGuidance(options: {
   pluginConfig?: TrustclawPluginConfig;
   messages?: unknown[];
+  sessionKey?: string;
+  openclawAgentId?: string;
 }): {
   prependSystemContext: string;
   prependContext?: string;
+  agentPackId: string;
 } {
-  const prependSystemContext = [C3PO_PTDS_SYSTEM_PRESET, "", STATIC_GUIDANCE].join("\n");
+  const pack = resolvePack(options.pluginConfig, options.sessionKey, options.openclawAgentId);
+  const prependSystemContext = buildAgentPackSystemContext(pack);
   const paths = resolveTrustclawPaths(options.pluginConfig);
   const profile = buildPtdsHealthProfileSummary({ dbPath: paths.dbPath });
   if (!profile.mounted) {
-    return { prependSystemContext };
+    return { prependSystemContext, agentPackId: pack.id };
   }
   const needsBriefing = !sessionHasMountBriefing(options.messages);
   return {
     prependSystemContext,
-    prependContext: formatMountedProfileContext(profile, needsBriefing),
+    prependContext: formatMountedProfileContext(profile, pack, needsBriefing),
+    agentPackId: pack.id,
   };
 }
 

@@ -1,7 +1,9 @@
 // PTDS workbench — OpenClaw native chat in center, TrustClaw config rails on sides.
-import { html, type TemplateResult } from "lit";
+import { html, nothing, type TemplateResult } from "lit";
 import { t } from "../../i18n/index.ts";
 import { icons } from "../icons.ts";
+import { renderTrustclawAgentPackSelector } from "./trustclaw-agent-pack-selector.ts";
+import type { TrustclawAgentPackSelectorParams } from "./trustclaw-agent-pack-selector.ts";
 
 function buildTrustclawEmbedSrc(basePath: string, locale: string, embed: "left" | "right"): string {
   const prefix = basePath ? `${basePath.replace(/\/$/, "")}/trustclaw/` : "/trustclaw/";
@@ -57,6 +59,7 @@ export type TrustclawPtdsWorkbenchParams = {
   onToggleLeft: () => void;
   onToggleRight: () => void;
   chatContent: TemplateResult;
+  agentPackSelector?: TrustclawAgentPackSelectorParams;
 };
 
 function renderRailHeader(params: {
@@ -173,7 +176,12 @@ export function renderTrustclawPtdsWorkbench(params: TrustclawPtdsWorkbenchParam
         })}
       </aside>
 
-      <div class="trustclaw-ptds-workbench__chat">${params.chatContent}</div>
+      <div class="trustclaw-ptds-workbench__chat">
+        ${params.agentPackSelector
+          ? renderTrustclawAgentPackSelector(params.agentPackSelector)
+          : nothing}
+        <div class="trustclaw-ptds-workbench__chat-main">${params.chatContent}</div>
+      </div>
 
       <aside
         class="trustclaw-ptds-rail trustclaw-ptds-rail--right ${params.rightOpen

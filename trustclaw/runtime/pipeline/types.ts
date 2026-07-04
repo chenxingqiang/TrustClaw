@@ -35,6 +35,7 @@ export type PipelineStages = {
 export type RuntimeContext = {
   session_id: string;
   user_query: string;
+  agent_pack_id: string;
   pipeline_stages: PipelineStages;
   audit_trail_id: string;
   evidence_ledger_receipt: {
@@ -46,6 +47,7 @@ export type RuntimeContext = {
 export type RunChatInput = {
   session_id: string;
   message: string;
+  agent_pack_id?: string;
 };
 
 export type Text2SqlLlmCaller = (prompt: string) => Promise<string>;
@@ -54,6 +56,7 @@ export type RunChatOptions = {
   dbPath?: string;
   auditDir?: string;
   llm: Text2SqlLlmCaller;
+  agentPack?: import("../agent-pack/index.js").ResolvedAgentPack;
 };
 
 export type RunChatResult =

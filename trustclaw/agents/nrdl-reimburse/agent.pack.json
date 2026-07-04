@@ -1,0 +1,43 @@
+{
+  "id": "nrdl-reimburse",
+  "version": "0.1.0",
+  "displayName": {
+    "zh-CN": "NRDL 医保报销咨询",
+    "en": "NRDL reimbursement advisor"
+  },
+  "domain": ["nrdl", "reimbursement", "pharma-policy"],
+  "openclaw": {
+    "agentId": "nrdl-reimburse"
+  },
+  "tools": {
+    "read": "trustclaw_ptds_query"
+  },
+  "prompts": {
+    "system": "prompts/nrdl-reimburse-system.v1.md"
+  },
+  "data": {
+    "readTables": [
+      "nrdl_drug_registry",
+      "nrdl_payment_rules",
+      "medication_compliance_standards",
+      "v_glp1_nrdl_check_snapshot"
+    ],
+    "snapshotView": "v_glp1_nrdl_check_snapshot"
+  },
+  "rules": {
+    "engine": "nrdl-table",
+    "activeStandardHint": "glp1-nrdl-ast-handshake-v2"
+  },
+  "pipeline": {
+    "stages": ["TEXT2SQL_GEN", "DB_QUERY", "RULE_EVAL", "AGENT_DECISION", "LEDGER_COMMIT"],
+    "decisionBuilder": "glp1-decision"
+  },
+  "consent": {
+    "read": { "allowAlways": true }
+  },
+  "audit": {
+    "businessComponent": "PTDS.Agent.NRDLReimburse",
+    "decisionComponent": "Agent.NRDLReimburseDecision",
+    "ruleEvalComponent": "AgentRuntime.ExecRule"
+  }
+}

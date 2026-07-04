@@ -5,6 +5,10 @@ export type TrustclawPluginConfig = {
   dbPath?: string;
   auditDir?: string;
   evidenceDir?: string;
+  /** Directory tree containing per-agent `agent.pack.json` files. */
+  agentPacksDir?: string;
+  /** Default pack id when OpenClaw agentId is not mapped (default: glp1-eligibility). */
+  defaultAgentPack?: string;
 };
 
 export function resolveTrustclawPaths(

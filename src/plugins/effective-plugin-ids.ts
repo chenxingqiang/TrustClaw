@@ -6,6 +6,7 @@ import {
   listPotentialConfiguredChannelIds,
 } from "../channels/config-presence.js";
 import { applyPluginAutoEnable } from "../config/plugin-auto-enable.js";
+import { TRUSTCLAW_PLUGIN_ID } from "../config/trustclaw-product-defaults.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
 import {
   listExplicitConfiguredChannelIdsForConfig,
@@ -154,6 +155,9 @@ export function resolveEffectivePluginIds(params: {
   });
   const effectiveConfig = autoEnabled.config;
   const ids = new Set(collectExplicitEffectivePluginIds(effectiveConfig));
+  if (effectiveConfig.plugins?.entries?.[TRUSTCLAW_PLUGIN_ID]?.enabled !== false) {
+    ids.add(TRUSTCLAW_PLUGIN_ID);
+  }
   for (const pluginId of collectSelectedContextEnginePluginIds(effectiveConfig)) {
     ids.add(pluginId);
   }

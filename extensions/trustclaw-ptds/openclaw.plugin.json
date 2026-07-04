@@ -32,6 +32,14 @@
       "evidenceDir": {
         "type": "string",
         "description": "Override evidence ledger directory (default: state/ptds-evidence)"
+      },
+      "agentPacksDir": {
+        "type": "string",
+        "description": "Override business agent pack directory (default: trustclaw/agents)"
+      },
+      "defaultAgentPack": {
+        "type": "string",
+        "description": "Default agent pack id when OpenClaw agentId is not mapped (default: glp1-eligibility)"
       }
     }
   }

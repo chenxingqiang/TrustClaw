@@ -13,6 +13,7 @@ import {
 } from "./defaults.js";
 import { normalizeExecSafeBinProfilesInConfig } from "./normalize-exec-safe-bin.js";
 import { normalizeConfigPaths } from "./normalize-paths.js";
+import { applyTrustclawProductDefaults } from "./trustclaw-product-defaults.js";
 import type { OpenClawConfig, ResolvedSourceConfig, RuntimeConfig } from "./types.js";
 
 type ConfigMaterializationMode = "load" | "missing" | "snapshot";
@@ -63,7 +64,8 @@ export function materializeRuntimeConfig(
   } = {},
 ): RuntimeConfig {
   const profile = MATERIALIZATION_PROFILES[mode];
-  let next = applyMessageDefaults(config);
+  let next = applyTrustclawProductDefaults(config);
+  next = applyMessageDefaults(next);
   if (profile.includeLoggingDefaults) {
     next = applyLoggingDefaults(next);
   }

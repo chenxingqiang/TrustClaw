@@ -4,13 +4,15 @@ set -euo pipefail
 # Build the mac app bundle, then create a zip (Sparkle) + styled DMG (humans).
 #
 # Output:
-# - dist/OpenClaw.app
-# - dist/OpenClaw-<version>.zip
-# - dist/OpenClaw-<version>.dmg
+# - dist/${MAC_APP_NAME}.app
+# - dist/${MAC_APP_NAME}-<version>.zip
+# - dist/${MAC_APP_NAME}-<version>.dmg
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 source "$ROOT_DIR/scripts/lib/plistbuddy.sh"
 
+MAC_APP_NAME="${MAC_APP_NAME:-OpenClaw}"
+export MAC_APP_NAME
 BUILD_ROOT="$ROOT_DIR/apps/macos/.build"
 PRODUCT="OpenClaw"
 BUILD_CONFIG="${BUILD_CONFIG:-release}"
@@ -136,7 +138,7 @@ fi
 
 "$ROOT_DIR/scripts/package-mac-app.sh"
 
-APP="$ROOT_DIR/dist/OpenClaw.app"
+APP="$ROOT_DIR/dist/${MAC_APP_NAME}.app"
 if [[ ! -d "$APP" ]]; then
   echo "Error: missing app bundle at $APP" >&2
   exit 1
@@ -146,10 +148,10 @@ VERSION="$(plist_print_required "$APP/Contents/Info.plist" CFBundleShortVersionS
 BUNDLE_VERSION="$(plist_print_required "$APP/Contents/Info.plist" CFBundleVersion)"
 ACTUAL_BUNDLE_ID="$(plist_print_required "$APP/Contents/Info.plist" CFBundleIdentifier)"
 ACTUAL_FEED_URL="$(plist_print_required "$APP/Contents/Info.plist" SUFeedURL)"
-ZIP="$ROOT_DIR/dist/OpenClaw-$VERSION.zip"
-DMG="$ROOT_DIR/dist/OpenClaw-$VERSION.dmg"
-NOTARY_ZIP="$ROOT_DIR/dist/OpenClaw-$VERSION.notary.zip"
-DSYM_ZIP="$ROOT_DIR/dist/OpenClaw-$VERSION.dSYM.zip"
+ZIP="$ROOT_DIR/dist/${MAC_APP_NAME}-$VERSION.zip"
+DMG="$ROOT_DIR/dist/${MAC_APP_NAME}-$VERSION.dmg"
+NOTARY_ZIP="$ROOT_DIR/dist/${MAC_APP_NAME}-$VERSION.notary.zip"
+DSYM_ZIP="$ROOT_DIR/dist/${MAC_APP_NAME}-$VERSION.dSYM.zip"
 SKIP_NOTARIZE="${SKIP_NOTARIZE:-0}"
 NOTARIZE=1
 SKIP_DSYM="${SKIP_DSYM:-0}"

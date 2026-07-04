@@ -1,0 +1,39 @@
+{
+  "id": "compliance-auditor",
+  "version": "0.1.0",
+  "displayName": {
+    "zh-CN": "PTDS 合规审计员",
+    "en": "PTDS compliance auditor"
+  },
+  "domain": ["audit", "compliance", "security"],
+  "openclaw": {
+    "agentId": "compliance-auditor"
+  },
+  "tools": {
+    "read": "trustclaw_ptds_query"
+  },
+  "prompts": {
+    "system": "prompts/compliance-auditor-system.v1.md"
+  },
+  "data": {
+    "readTables": [
+      "medication_compliance_standards",
+      "medication_compliance_ast_rules",
+      "data_source_registry"
+    ]
+  },
+  "rules": {
+    "engine": "none"
+  },
+  "pipeline": {
+    "stages": ["TEXT2SQL_GEN", "DB_QUERY", "AGENT_DECISION", "LEDGER_COMMIT"],
+    "decisionBuilder": "pass-through"
+  },
+  "consent": {
+    "read": { "allowAlways": false }
+  },
+  "audit": {
+    "businessComponent": "PTDS.Agent.ComplianceAuditor",
+    "decisionComponent": "Agent.ComplianceAuditorDecision"
+  }
+}

@@ -219,6 +219,10 @@ import { renderLoginGate } from "./views/login-gate.ts";
 import { renderMcp } from "./views/mcp.ts";
 import { renderOverview } from "./views/overview.ts";
 import { renderTrustclawPtdsWorkbench } from "./views/trustclaw-ptds-workbench.ts";
+import {
+  ensureTrustclawPtdsAgentPackState,
+  saveTrustclawSessionAgentPack,
+} from "./controllers/trustclaw-ptds.ts";
 
 let pendingUpdate: (() => void) | undefined;
 
@@ -1399,6 +1403,9 @@ export function renderApp(state: AppViewState) {
   const chatDisabledReason = state.connected ? null : t("chat.disconnected");
   const isPtds = state.tab === "ptds";
   const isChat = state.tab === "chat" || isPtds;
+  if (isPtds) {
+    ensureTrustclawPtdsAgentPackState(state);
+  }
   const headerError = !isChat && state.lastError !== state.chatError ? state.lastError : null;
   const chatViewError = state.lastError;
   const chatHeaderHidden = isChat && (state.onboarding || state.chatHeaderControlsHidden);
@@ -3934,6 +3941,17 @@ export function renderApp(state: AppViewState) {
               },
               onToggleRight: () => {
                 state.ptdsRightRailOpen = !state.ptdsRightRailOpen;
+              },
+              agentPackSelector: {
+                packs: state.ptdsAgentPacks,
+                selectedPackId: state.ptdsSessionAgentPackId,
+                resolvedFrom: state.ptdsSessionAgentPackSource,
+                loading: state.ptdsAgentPacksLoading,
+                saving: state.ptdsSessionAgentPackSaving,
+                error: state.ptdsAgentPacksError,
+                onSelect: (packId) => {
+                  void saveTrustclawSessionAgentPack(state, packId);
+                },
               },
               chatContent: renderMeasuredMainChat(),
             })

@@ -78,6 +78,7 @@ describe("trustclaw/runtime/pipeline", () => {
       }
 
       expect(result.context.session_id).toBe("sess_test_01");
+      expect(result.context.agent_pack_id).toBe("glp1-eligibility");
       expect(result.context.pipeline_stages.text2sql.sql).toMatch(/^SELECT\b/i);
       expect(result.context.pipeline_stages.rule_evaluation.evaluated_rules.length).toBeGreaterThan(
         0,

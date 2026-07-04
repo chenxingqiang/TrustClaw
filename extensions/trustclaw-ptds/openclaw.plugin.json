@@ -1,0 +1,27 @@
+{
+  "id": "trustclaw-ptds",
+  "name": "TrustClaw PTDS",
+  "description": "TrustClaw Personal Trusted Data Space HTTP APIs and runtime integration.",
+  "activation": {
+    "onStartup": false,
+    "onConfigPaths": ["plugins.entries.trustclaw-ptds"]
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "dbPath": {
+        "type": "string",
+        "description": "Override PTDS SQLite path (default: state/local_ptds.db under OPENCLAW_STATE_DIR)"
+      },
+      "auditDir": {
+        "type": "string",
+        "description": "Override audit JSONL directory (default: state/ptds-audit)"
+      },
+      "evidenceDir": {
+        "type": "string",
+        "description": "Override evidence ledger directory (default: state/ptds-evidence)"
+      }
+    }
+  }
+}

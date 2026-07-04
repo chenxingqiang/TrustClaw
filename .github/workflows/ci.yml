@@ -661,7 +661,7 @@ jobs:
           install-bun: "false"
 
       - name: Restore build-all step cache
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
         with:
           path: .artifacts/build-all-cache
           key: ${{ runner.os }}-build-all-v3-${{ hashFiles('package.json', 'pnpm-lock.yaml', 'npm-shrinkwrap.json', 'packages/plugin-sdk/package.json', 'packages/llm-core/package.json', 'packages/model-catalog-core/package.json', 'packages/memory-host-sdk/package.json', 'scripts/build-all.mjs', 'scripts/write-plugin-sdk-entry-dts.ts', 'scripts/lib/plugin-sdk-entries.mjs', 'tsconfig.json', 'tsconfig.plugin-sdk.dts.json', 'src/plugin-sdk/**', 'packages/llm-core/src/**', 'packages/model-catalog-core/src/**', 'packages/memory-host-sdk/src/**', 'src/types/**', 'src/video-generation/dashscope-compatible.ts', 'src/video-generation/types.ts', 'scripts/copy-export-html-templates.ts', 'scripts/lib/copy-assets.ts', 'src/auto-reply/reply/export-html/**') }}
@@ -1546,7 +1546,7 @@ jobs:
       - name: Cache extension package boundary artifacts
         id: extension-package-boundary-cache
         if: matrix.group == 'extension-package-boundary'
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
         with:
           path: |
             dist/plugin-sdk
@@ -2084,7 +2084,7 @@ jobs:
           echo "key=$toolchain_key" >> "$GITHUB_OUTPUT"
 
       - name: Cache SwiftPM
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
         with:
           path: ~/Library/Caches/org.swift.swiftpm
           key: ${{ runner.os }}-swiftpm-${{ hashFiles('apps/macos/Package.resolved') }}
@@ -2093,7 +2093,7 @@ jobs:
 
       - name: Cache Swift build directory
         id: swift-build-cache
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
         with:
           path: apps/macos/.build
           key: ${{ runner.os }}-swift-build-v2-${{ steps.swift-toolchain.outputs.key }}-${{ hashFiles('apps/macos/Package.swift', 'apps/macos/Package.resolved', 'apps/macos/Sources/**', 'apps/macos/Tests/**', 'apps/shared/OpenClawKit/Package.swift', 'apps/shared/OpenClawKit/Sources/**', 'apps/swabble/Package.swift', 'apps/swabble/Sources/**') }}
@@ -2307,7 +2307,7 @@ jobs:
             apps/android/gradle/libs.versions.toml
 
       - name: Cache Android SDK
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v5
         with:
           path: ~/.android-sdk
           key: ${{ runner.os }}-android-sdk-v1-cmdline-14742923-platform-36-build-tools-36.0.0

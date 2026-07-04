@@ -329,6 +329,13 @@ export function main(argv = process.argv.slice(2)) {
     runPnpmSync(installArgs, installEnv);
   }
 
+  const localViteBin = path.join(uiDir, "node_modules", "vite", "bin", "vite.js");
+  const rootViteBin = path.join(repoRoot, "node_modules", "vite", "bin", "vite.js");
+  if (action === "build" && !fs.existsSync(localViteBin) && fs.existsSync(rootViteBin)) {
+    run(process.execPath, [rootViteBin, "build", ...rest]);
+    return;
+  }
+
   runPnpm(["run", script, ...rest]);
 }
 

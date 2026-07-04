@@ -62,6 +62,7 @@ export async function generateText2Sql(
   const prompt = buildText2SqlPrompt({
     userQuery: input.userQuery,
     databaseSchema: input.databaseSchema,
+    promptTemplate: input.promptTemplate,
   });
   const llmRaw = await options.llm(prompt);
   const finalized = finalizeSql(llmRaw);

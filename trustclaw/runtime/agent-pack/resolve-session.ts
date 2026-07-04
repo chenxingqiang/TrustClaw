@@ -1,38 +1,52 @@
 import type { TrustclawPluginConfig } from "../../ptds/config.js";
 import { resolveTrustclawPaths } from "../../ptds/config.js";
-import { getSessionAgentPackId } from "../../ptds/session-agent-pack.js";
-import { getAgentPackRegistry } from "./registry.js";
-import type { ResolvedAgentPack } from "./schema.js";
+import { getSessionAgentPackId, getSessionAgentPackLock } from "../../ptds/session-agent-pack.js";
+import {
+  resolveCoordinatorAgentPack,
+  type CoordinatorPackSource,
+} from "../coordinator/index.js";
 
-export type SessionAgentPackSource = "session" | "openclaw_agent" | "default";
+/** @deprecated Prefer resolveCoordinatorAgentPack; read-only preview without lock binding. */
+export type SessionAgentPackSource = Exclude<CoordinatorPackSource, "lock" | "request">;
 
 export function resolveSessionAgentPack(params: {
   sessionKey: string;
   openclawAgentId?: string;
   pluginConfig?: TrustclawPluginConfig;
-}): { pack: ResolvedAgentPack; source: SessionAgentPackSource } {
-  const paths = resolveTrustclawPaths(params.pluginConfig);
-  const registry = getAgentPackRegistry({
-    agentsDir: params.pluginConfig?.agentPacksDir,
-    defaultPackId: params.pluginConfig?.defaultAgentPack,
+}): { pack: ReturnType<typeof resolveCoordinatorAgentPack>["pack"]; source: SessionAgentPackSource } {
+  const resolved = resolveCoordinatorAgentPack({
+    ...params,
+    bindLock: false,
   });
-  const sessionPackId = getSessionAgentPackId(params.sessionKey, {
-    dbPath: paths.dbPath,
-    auditDir: paths.auditDir,
+  const source: SessionAgentPackSource =
+    resolved.source === "lock" || resolved.source === "request"
+      ? "session"
+      : resolved.source;
+  return { pack: resolved.pack, source };
+}
+
+export { resolveCoordinatorAgentPack, type CoordinatorPackResolution } from "../coordinator/index.js";
+
+export function resolveBoundAgentPack(params: {
+  sessionKey: string;
+  openclawAgentId?: string;
+  requestedPackId?: string;
+  pluginConfig?: TrustclawPluginConfig;
+}) {
+  return resolveCoordinatorAgentPack({
+    ...params,
+    bindLock: true,
   });
-  if (sessionPackId) {
-    return {
-      pack: registry.resolve({ packId: sessionPackId }),
-      source: "session",
-    };
-  }
-  const openclawAgentId = params.openclawAgentId?.trim();
-  if (openclawAgentId) {
-    const byAgent = registry.resolve({ openclawAgentId });
-    const defaultPack = registry.getDefault();
-    if (byAgent.id !== defaultPack.id) {
-      return { pack: byAgent, source: "openclaw_agent" };
-    }
-  }
-  return { pack: registry.getDefault(), source: "default" };
+}
+
+export function readSessionPackOverrides(
+  sessionKey: string,
+  pluginConfig?: TrustclawPluginConfig,
+): { sessionOverride: string | null; lockPackId: string | null } {
+  const paths = resolveTrustclawPaths(pluginConfig);
+  const overrides = { dbPath: paths.dbPath, auditDir: paths.auditDir };
+  return {
+    sessionOverride: getSessionAgentPackId(sessionKey, overrides) ?? null,
+    lockPackId: getSessionAgentPackLock(sessionKey, overrides) ?? null,
+  };
 }

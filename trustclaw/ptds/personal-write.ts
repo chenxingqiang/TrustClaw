@@ -1,4 +1,4 @@
-import { generatePersonalWriteSql } from "../runtime/text2sql/generate-personal-write.js";
+import { generatePersonalWriteSql, resolvePersonalWriteSchemaSnippet } from "../runtime/text2sql/generate-personal-write.js";
 import { recordDeviceImportAudit } from "./consent-audit.js";
 import { openPtdsDatabase, resolvePrimaryUserId, runPtdsImmediateTransactionSync } from "./db.js";
 import {
@@ -45,7 +45,12 @@ function profileSnapshotForWrite(
 
 export async function previewPersonalWrite(
   message: string,
-  options: { llm: DeviceImportLlm; dbPathOrOverrides?: string | PtdsPathOverrides },
+  options: {
+    llm: DeviceImportLlm;
+    dbPathOrOverrides?: string | PtdsPathOverrides;
+    promptTemplate?: string;
+    writeTables?: readonly string[];
+  },
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<DeviceImportPreviewResult> {
   const snapshot = profileSnapshotForWrite(options.dbPathOrOverrides, env);
@@ -57,7 +62,12 @@ export async function previewPersonalWrite(
   }
 
   const generated = await generatePersonalWriteSql(
-    { writeRequest: message, profileSnapshot: snapshot },
+    {
+      writeRequest: message,
+      profileSnapshot: snapshot,
+      databaseSchema: resolvePersonalWriteSchemaSnippet(options.writeTables),
+      promptTemplate: options.promptTemplate,
+    },
     { llm: options.llm },
   );
 
@@ -86,6 +96,8 @@ export async function executePersonalWrite(
     llm: DeviceImportLlm;
     dbPathOrOverrides?: string | PtdsPathOverrides;
     auditDir?: string;
+    promptTemplate?: string;
+    writeTables?: readonly string[];
   },
   env: NodeJS.ProcessEnv = process.env,
 ): Promise<DeviceImportResult> {

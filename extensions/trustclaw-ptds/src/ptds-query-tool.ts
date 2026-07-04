@@ -3,7 +3,7 @@ import type { TrustclawPluginConfig } from "../../../trustclaw/ptds/config.js";
 import { resolveTrustclawPaths } from "../../../trustclaw/ptds/config.js";
 import { TRUSTCLAW_PTDS_QUERY_TOOL } from "../../../trustclaw/runtime/constants.js";
 import type { Text2SqlLlmCaller } from "../../../trustclaw/runtime/pipeline/index.js";
-import { resolveSessionAgentPack } from "../../../trustclaw/runtime/agent-pack/index.js";
+import { resolveBoundAgentPack } from "../../../trustclaw/runtime/agent-pack/index.js";
 import { runTrustclawChat } from "../../../trustclaw/runtime/pipeline/index.js";
 
 export type TrustclawPtdsQueryToolDeps = {
@@ -51,7 +51,7 @@ export function createTrustclawPtdsQueryToolFactory(
         const message = readMessageParam(params);
         const paths = resolveTrustclawPaths(pluginConfig);
         const sessionId = resolveSessionId(ctx);
-        const agentPack = resolveSessionAgentPack({
+        const agentPack = resolveBoundAgentPack({
           sessionKey: sessionId,
           openclawAgentId: ctx.agentId,
           pluginConfig,

@@ -2,17 +2,16 @@
 
 TrustClaw PTDS 实现根目录。在 **OpenClaw fork** 上构建个人可信数据空间运行时。
 
-## 文档（按阅读顺序）
+## 文档
 
 | 文件 | 说明 |
 | --- | --- |
-| [PLAN.md](./PLAN.md) | 产品开发规划、阶段、DoD、审核清单 |
-| [DECISIONS.md](./DECISIONS.md) | **待您逐条确认** 的架构决策 |
+| **[AGENTS.md](./AGENTS.md)** | **产品 Loop 唯一驱动** — 无限优化闭环、DoD 闸门、合规 Must、当前轮次笔记 |
+| [GETTING_STARTED.md](./GETTING_STARTED.md) | 本地启动、端口、Console 布局 |
+| [DECISIONS.md](./DECISIONS.md) | **待您逐条确认** 的架构决策（Loop 闸门） |
+| [ROADMAP.md](./ROADMAP.md) | 任务 ID / 依赖图（策略层只读） |
 | [OPENCLAW_REUSE.md](./OPENCLAW_REUSE.md) | OpenClaw 能力继承 / 扩展 / 新建映射 |
-| [AGENTS.md](./AGENTS.md) | Agent Loop 迭代开发协议 |
-| [PRODUCT_SPEC.md](./PRODUCT_SPEC.md) | 冻结 API / Schema / 合约 |
-| [ROADMAP.md](./ROADMAP.md) | 5 天 Sprint |
-| [docs/SPEC-V1-source.md](./docs/SPEC-V1-source.md) | 产品规格说明书 V1 原文 |
+| [PLAN.md](./PLAN.md) | 阶段背景（只读参考，不驱动 Loop） |
 
 ## 代码布局
 

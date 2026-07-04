@@ -8,7 +8,9 @@ import { getAgentPackRegistry } from "../agent-pack/index.js";
 import { evaluateGlp1RulesFromDb } from "../rules/index.js";
 import type { RuleEvaluationMatrix } from "../rules/types.js";
 import { resolveGlp1EvalDrugId } from "../rules/resolve-glp1-drug-id.js";
+import { loadAgentPackText2SqlTemplate } from "../agent-pack/text2sql-prompt.js";
 import { generateText2Sql } from "../text2sql/generate.js";
+import { loadPtdsSchemaSnippetForObjects } from "../text2sql/schema-context.js";
 import { buildPackAgentDecision, packIncludesStage } from "./pack-decision.js";
 import type { RunChatInput, RunChatOptions, RunChatResult, RuntimeContext } from "./types.js";
 
@@ -87,7 +89,14 @@ export async function runTrustclawChat(
     sessionId: input.session_id,
   });
 
-  const text2sql = await generateText2Sql({ userQuery: input.message }, { llm: options.llm });
+  const text2sql = await generateText2Sql(
+    {
+      userQuery: input.message,
+      databaseSchema: loadPtdsSchemaSnippetForObjects(pack.data.readTables),
+      promptTemplate: loadAgentPackText2SqlTemplate(pack),
+    },
+    { llm: options.llm },
+  );
 
   if (text2sql.security_error || !text2sql.handshake.handshake_payload.read_only_verification) {
     audit.record({

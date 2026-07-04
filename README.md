@@ -13,7 +13,7 @@ V1 demo scope: **GLP-1 assessment agent** on a frozen PTDS architecture (init �
 
 **TrustClaw docs**
 
-[Getting started](trustclaw/GETTING_STARTED.md) · [Vision](VISION.md) · [Product plan](trustclaw/PLAN.md) · [Decisions (审核)](trustclaw/DECISIONS.md) · [OpenClaw reuse](trustclaw/OPENCLAW_REUSE.md) · [Product spec](trustclaw/PRODUCT_SPEC.md) · [5-day roadmap](trustclaw/ROADMAP.md) · [Agent loop guide](trustclaw/AGENTS.md) · [Spec source](trustclaw/docs/SPEC-V1-source.md)
+[Getting started](trustclaw/GETTING_STARTED.md) · [Vision](VISION.md) · [**Agent loop guide (canonical)**](trustclaw/AGENTS.md) · [Decisions (审核)](trustclaw/DECISIONS.md) · [5-day roadmap](trustclaw/ROADMAP.md) · [OpenClaw reuse](trustclaw/OPENCLAW_REUSE.md) · [Product plan (background)](trustclaw/PLAN.md)
 
 ## TrustClaw quick start 
 

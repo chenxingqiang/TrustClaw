@@ -366,7 +366,15 @@ export class OpenClawApp extends LitElement {
   @state() ptdsAgentPacksLoading = false;
   @state() ptdsAgentPacksError: string | null = null;
   @state() ptdsSessionAgentPackId: string | null = null;
-  @state() ptdsSessionAgentPackSource: "session" | "openclaw_agent" | "default" | null = null;
+  @state() ptdsSessionAgentPackSource:
+    | "session"
+    | "lock"
+    | "openclaw_agent"
+    | "default"
+    | "request"
+    | null = null;
+  @state() ptdsSessionAgentPackLocked = false;
+  @state() ptdsSessionAgentPackMismatch = false;
   @state() ptdsSessionAgentPackSaving = false;
   @state() ptdsAgentPackSessionKey: string | null = null;
 

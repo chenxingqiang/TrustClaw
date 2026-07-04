@@ -2,7 +2,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { z } from "zod";
 import type { TrustclawPluginConfig } from "../../../trustclaw/ptds/config.js";
 import { resolveTrustclawPaths } from "../../../trustclaw/ptds/config.js";
-import { getAgentPackRegistry } from "../../../trustclaw/runtime/agent-pack/index.js";
+import { resolveBoundAgentPack } from "../../../trustclaw/runtime/agent-pack/index.js";
 import type { Text2SqlLlmCaller } from "../../../trustclaw/runtime/pipeline/index.js";
 import { runTrustclawChat } from "../../../trustclaw/runtime/pipeline/index.js";
 import { methodIs, readJsonBody, sendJson } from "./http-utils.js";
@@ -50,17 +50,20 @@ export function createAgentChatHandler(
     }
 
     const paths = pathOverrides(pluginConfig);
-    const registry = getAgentPackRegistry({
-      agentsDir: pluginConfig?.agentPacksDir,
-      defaultPackId: pluginConfig?.defaultAgentPack,
+    const coordinator = resolveBoundAgentPack({
+      sessionKey: body.data.session_id,
+      requestedPackId: body.data.agent_pack_id,
+      pluginConfig,
     });
-    const agentPack = registry.resolve({ packId: body.data.agent_pack_id });
-    const result = await runTrustclawChat(body.data, {
-      dbPath: paths.dbPath,
-      auditDir: paths.auditDir,
-      llm: deps.llm,
-      agentPack,
-    });
+    const result = await runTrustclawChat(
+      { ...body.data, agent_pack_id: coordinator.pack.id },
+      {
+        dbPath: paths.dbPath,
+        auditDir: paths.auditDir,
+        llm: deps.llm,
+        agentPack: coordinator.pack,
+      },
+    );
 
     if (!result.ok) {
       const status =

@@ -1,4 +1,7 @@
-import { TRUSTCLAW_RUNTIME_CONTEXT_MESSAGE } from "../../runtime/constants.js";
+import {
+  TRUSTCLAW_PTDS_DATA_CHANGED_MESSAGE,
+  TRUSTCLAW_RUNTIME_CONTEXT_MESSAGE,
+} from "../../runtime/constants.js";
 import type { RuntimeContextResponse } from "./api.js";
 
 function isRuntimeContextPayload(value: unknown): value is RuntimeContextResponse {
@@ -34,6 +37,7 @@ function isAllowedRuntimeContextOrigin(origin: string, allowed: Set<string>): bo
 export function bindTrustclawRuntimeContextListener(handlers: {
   renderAudit: (context: RuntimeContextResponse) => void;
   appendLedger: (context: RuntimeContextResponse) => void;
+  onDataChanged?: () => void;
   clear?: () => void;
   allowedOrigins?: string[];
 }): () => void {
@@ -50,14 +54,17 @@ export function bindTrustclawRuntimeContextListener(handlers: {
       return;
     }
     const record = data as Record<string, unknown>;
-    if (record.type !== TRUSTCLAW_RUNTIME_CONTEXT_MESSAGE) {
+    if (record.type === TRUSTCLAW_RUNTIME_CONTEXT_MESSAGE) {
+      if (!isRuntimeContextPayload(record.context)) {
+        return;
+      }
+      handlers.renderAudit(record.context);
+      handlers.appendLedger(record.context);
       return;
     }
-    if (!isRuntimeContextPayload(record.context)) {
-      return;
+    if (record.type === TRUSTCLAW_PTDS_DATA_CHANGED_MESSAGE) {
+      handlers.onDataChanged?.();
     }
-    handlers.renderAudit(record.context);
-    handlers.appendLedger(record.context);
   };
 
   window.addEventListener("message", onMessage);

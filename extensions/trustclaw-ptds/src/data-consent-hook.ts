@@ -9,7 +9,7 @@ import {
   buildPtdsHealthProfileSummary,
   formatPrivateDataFieldLabels,
 } from "../../../trustclaw/ptds/profile-summary.js";
-import { resolveSessionAgentPack } from "../../../trustclaw/runtime/agent-pack/index.js";
+import { resolveBoundAgentPack } from "../../../trustclaw/runtime/agent-pack/index.js";
 import { TRUSTCLAW_PTDS_QUERY_TOOL, TRUSTCLAW_PTDS_WRITE_TOOL } from "../../../trustclaw/runtime/constants.js";
 
 const CONSENT_TITLE = "访问个人健康数据 / Access personal health data";
@@ -49,7 +49,7 @@ function resolvePackForHook(
   sessionKey: string,
   openclawAgentId?: string,
 ) {
-  return resolveSessionAgentPack({
+  return resolveBoundAgentPack({
     sessionKey,
     openclawAgentId,
     pluginConfig,

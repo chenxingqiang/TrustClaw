@@ -21,7 +21,15 @@ export type TrustclawPtdsAgentPackState = {
   ptdsAgentPacksLoading: boolean;
   ptdsAgentPacksError: string | null;
   ptdsSessionAgentPackId: string | null;
-  ptdsSessionAgentPackSource: "session" | "openclaw_agent" | "default" | null;
+  ptdsSessionAgentPackSource:
+    | "session"
+    | "lock"
+    | "openclaw_agent"
+    | "default"
+    | "request"
+    | null;
+  ptdsSessionAgentPackLocked: boolean;
+  ptdsSessionAgentPackMismatch: boolean;
   ptdsSessionAgentPackSaving: boolean;
   ptdsAgentPackSessionKey?: string | null;
 };
@@ -103,13 +111,19 @@ export async function loadTrustclawSessionAgentPack(
     const body = await fetchPtdsJson<{
       status: string;
       agent_pack_id: string;
-      resolved_from: "session" | "openclaw_agent" | "default";
+      resolved_from: TrustclawPtdsAgentPackState["ptdsSessionAgentPackSource"];
+      locked?: boolean;
+      agent_pack_mismatch?: boolean;
     }>(state, `/api/ptds/session/agent-pack?${params.toString()}`);
     state.ptdsSessionAgentPackId = body.agent_pack_id;
     state.ptdsSessionAgentPackSource = body.resolved_from;
+    state.ptdsSessionAgentPackLocked = body.locked === true;
+    state.ptdsSessionAgentPackMismatch = body.agent_pack_mismatch === true;
   } catch {
     state.ptdsSessionAgentPackId = null;
     state.ptdsSessionAgentPackSource = null;
+    state.ptdsSessionAgentPackLocked = false;
+    state.ptdsSessionAgentPackMismatch = false;
   }
 }
 
@@ -137,6 +151,8 @@ export async function saveTrustclawSessionAgentPack(
     });
     state.ptdsSessionAgentPackId = body.agent_pack_id;
     state.ptdsSessionAgentPackSource = "session";
+    state.ptdsSessionAgentPackLocked = true;
+    state.ptdsSessionAgentPackMismatch = false;
   } finally {
     state.ptdsSessionAgentPackSaving = false;
   }

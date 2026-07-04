@@ -40,7 +40,7 @@ let setSystemStatus: (running: boolean, detail?: string) => void = () => {};
 
 function mountRightRail(
   col: HTMLElement,
-  options?: { onComplianceImported?: () => void },
+  options?: { onComplianceImported?: () => void; onDataChanged?: () => void },
 ): void {
   const audit = document.createElement("div");
   const ledger = document.createElement("div");
@@ -62,6 +62,10 @@ function mountRightRail(
   bindTrustclawRuntimeContextListener({
     renderAudit: (context) => auditPanel.render(context),
     appendLedger: (context) => ledgerPanel.append(context),
+    onDataChanged: () => {
+      void auditPanel.refresh();
+      void ledgerPanel.refresh();
+    },
   });
   void ledgerPanel.refresh();
 }
@@ -81,6 +85,11 @@ function mountEmbed(mode: EmbedMode): void {
     renderLanding(landing, client, {
       onInitialized: () => void browserPanel.refresh(),
       onReset: () => void browserPanel.refresh(),
+    });
+    bindTrustclawRuntimeContextListener({
+      onDataChanged: () => void browserPanel.refresh(),
+      renderAudit: () => {},
+      appendLedger: () => {},
     });
     return;
   }
@@ -187,6 +196,11 @@ function mountFullConsole(): void {
   bindTrustclawRuntimeContextListener({
     renderAudit: (context) => auditPanel.render(context),
     appendLedger: (context) => ledgerPanel.append(context),
+    onDataChanged: () => {
+      void browser.refresh();
+      void auditPanel.refresh();
+      void ledgerPanel.refresh();
+    },
     allowedOrigins: [window.location.origin, resolveGatewayControlUiOrigin(env, window.location)],
   });
   void ledgerPanel.refresh();

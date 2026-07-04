@@ -3,8 +3,8 @@ import { resolveTrustclawPaths } from "../../../trustclaw/ptds/config.js";
 import { buildPtdsHealthProfileSummary } from "../../../trustclaw/ptds/profile-summary.js";
 import {
   buildAgentPackSystemContext,
-  getAgentPackRegistry,
-  resolveSessionAgentPack,
+  resolveBoundAgentPack,
+  resolveCoordinatorAgentPack,
   type ResolvedAgentPack,
 } from "../../../trustclaw/runtime/agent-pack/index.js";
 
@@ -83,17 +83,18 @@ function resolvePack(
   openclawAgentId?: string,
 ): ResolvedAgentPack {
   if (sessionKey?.trim()) {
-    return resolveSessionAgentPack({
+    return resolveBoundAgentPack({
       sessionKey,
       openclawAgentId,
       pluginConfig,
     }).pack;
   }
-  const registry = getAgentPackRegistry({
-    agentsDir: pluginConfig?.agentPacksDir,
-    defaultPackId: pluginConfig?.defaultAgentPack,
-  });
-  return registry.resolve({ openclawAgentId });
+  return resolveCoordinatorAgentPack({
+    sessionKey: "default",
+    openclawAgentId,
+    pluginConfig,
+    bindLock: false,
+  }).pack;
 }
 
 export function buildTrustclawPtdsAgentGuidance(options: {

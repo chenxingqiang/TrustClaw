@@ -43,6 +43,16 @@ describe("trustclaw/runtime/text2sql", () => {
     expect(prompt).not.toContain("{{USER_QUERY}}");
   });
 
+  it("honors custom prompt templates", () => {
+    const prompt = buildText2SqlPrompt({
+      userQuery: "list standards",
+      databaseSchema: "CREATE TABLE medication_compliance_standards (standard_id TEXT);",
+      promptTemplate: "SCHEMA:\n{{DATABASE_SCHEMA}}\nQ:\n{{USER_QUERY}}",
+    });
+    expect(prompt).toContain("medication_compliance_standards");
+    expect(prompt).toContain("list standards");
+  });
+
   it("loads v1.1 schema objects for Text2SQL", () => {
     const schema = loadPtdsSchemaSnippet();
     expect(schema).toContain("body_anthropometrics");

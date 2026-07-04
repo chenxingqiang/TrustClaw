@@ -463,6 +463,8 @@ export const en: TranslationMap = {
     agentPackSaving: "Saving…",
     agentPackFromAgent: "From OpenClaw agent profile",
     agentPackFromDefault: "Using default agent pack",
+    agentPackLocked: "Domain agent locked for this session",
+    agentPackMismatch: "OpenClaw agent differs from locked pack; locked pack wins",
   },
   skillWorkshop: {
     header: {

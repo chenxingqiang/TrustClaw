@@ -1,6 +1,3 @@
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import path from "node:path";
 import { loadDeviceImportSchemaSnippet } from "./device-write-schema.js";
 import {
   assertDeviceImportStatements,
@@ -9,36 +6,14 @@ import {
   extractInsertTables,
   splitInsertStatements,
 } from "./device-write-sanitize.js";
-
-const PERSONAL_PROMPT_PATH = fileURLToPath(
-  new URL("../../agents/glp1/prompts/personal-write-sql.v1.md", import.meta.url),
-);
-
-let cachedPersonalPromptTemplate: string | undefined;
-
-function loadPersonalPromptTemplate(): string {
-  if (!cachedPersonalPromptTemplate) {
-    cachedPersonalPromptTemplate = readFileSync(PERSONAL_PROMPT_PATH, "utf8");
-  }
-  return cachedPersonalPromptTemplate;
-}
-
-export function buildPersonalWriteSqlPrompt(params: {
-  writeRequest: string;
-  profileSnapshot: Record<string, unknown>;
-  databaseSchema?: string;
-}): string {
-  const schema = params.databaseSchema?.trim() || loadDeviceImportSchemaSnippet();
-  return loadPersonalPromptTemplate()
-    .replace("{{WRITE_REQUEST}}", params.writeRequest.trim())
-    .replace("{{PROFILE_SNAPSHOT}}", JSON.stringify(params.profileSnapshot, null, 2))
-    .replace("{{DATABASE_SCHEMA}}", schema);
-}
+import { buildPersonalWriteSqlPrompt } from "./personal-write-prompt.js";
+import { loadPtdsSchemaSnippetForObjects } from "./schema-context.js";
 
 export type PersonalWriteGenerateInput = {
   writeRequest: string;
   profileSnapshot: Record<string, unknown>;
   databaseSchema?: string;
+  promptTemplate?: string;
 };
 
 export type PersonalWriteGenerateOptions = {
@@ -55,6 +30,16 @@ export type PersonalWriteGenerateResult = {
   security_error?: string;
 };
 
+export function resolvePersonalWriteSchemaSnippet(writeTables?: readonly string[]): string {
+  if (writeTables && writeTables.length > 0) {
+    const snippet = loadPtdsSchemaSnippetForObjects(writeTables);
+    if (snippet.trim()) {
+      return snippet;
+    }
+  }
+  return loadDeviceImportSchemaSnippet();
+}
+
 export async function generatePersonalWriteSql(
   input: PersonalWriteGenerateInput,
   options: PersonalWriteGenerateOptions,
@@ -64,6 +49,7 @@ export async function generatePersonalWriteSql(
     writeRequest: input.writeRequest,
     profileSnapshot: input.profileSnapshot,
     databaseSchema: input.databaseSchema,
+    promptTemplate: input.promptTemplate,
   });
   const llmRaw = await options.llm(prompt);
   const cleaned = extractInsertSqlFromLlmOutput(llmRaw);

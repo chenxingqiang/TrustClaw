@@ -28,8 +28,8 @@ describe("ensureControlUiAllowedOriginsForNonLoopbackBind", () => {
     );
 
     expect(result.bind).toBe("lan");
-    expect(result.seededOrigins).toContain("http://localhost:18789");
-    expect(result.seededOrigins).toContain("http://127.0.0.1:18789");
+    expect(result.seededOrigins).toContain("http://localhost:19001");
+    expect(result.seededOrigins).toContain("http://127.0.0.1:19001");
   });
 
   it("uses runtime loopback before config non-loopback and avoids seeding", () => {
@@ -64,7 +64,7 @@ describe("ensureControlUiAllowedOriginsForNonLoopbackBind", () => {
     );
 
     expect(result.bind).toBe("auto");
-    expect(result.seededOrigins).toEqual(["http://localhost:18789", "http://127.0.0.1:18789"]);
+    expect(result.seededOrigins).toEqual(["http://localhost:19001", "http://127.0.0.1:19001"]);
   });
 
   it("does not overwrite explicit allowed origins", () => {

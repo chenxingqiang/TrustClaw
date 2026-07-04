@@ -13,7 +13,8 @@
     "read": "trustclaw_ptds_query"
   },
   "prompts": {
-    "system": "prompts/compliance-auditor-system.v1.md"
+    "system": "prompts/compliance-auditor-system.v1.md",
+    "text2sql": "prompts/text2sql.v1.md"
   },
   "data": {
     "readTables": [

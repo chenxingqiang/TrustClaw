@@ -1,7 +1,6 @@
-// TrustClaw demo SPA — typed API client for the frozen plugin routes.
-// Contracts are pinned to `trustclaw/PRODUCT_SPEC.md` and the handlers under
-// `extensions/trustclaw-ptds/src/`. Do not add spec-external fields here; if
-// the shape needs to change, update PRODUCT_SPEC.md + DECISIONS.md first.
+// TrustClaw demo SPA — typed API client for plugin routes.
+// Contracts follow handlers under `extensions/trustclaw-ptds/src/` and
+// colocated types here. If the shape changes, update handlers + DECISIONS.md first.
 
 /** Frozen `POST /api/ptds/init` request shape. */
 export interface PtdsInitRequest {
@@ -95,7 +94,7 @@ export interface AgentChatRequest {
   message: string;
 }
 
-/** Mirrors `RuntimeContext` in `PRODUCT_SPEC.md`. */
+/** Mirrors `RuntimeContext` from `trustclaw/runtime/pipeline/types.ts`. */
 export interface RuntimeContextResponse {
   session_id: string;
   user_query: string;

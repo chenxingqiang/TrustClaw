@@ -6,3 +6,6 @@ export const TRUSTCLAW_PTDS_WRITE_TOOL = "trustclaw_ptds_write";
 
 /** postMessage type for Runtime Context updates to TrustClaw side panels. */
 export const TRUSTCLAW_RUNTIME_CONTEXT_MESSAGE = "openclaw:trustclaw:runtime-context";
+
+/** postMessage type when PTDS SQLite data changes (writes / imports). */
+export const TRUSTCLAW_PTDS_DATA_CHANGED_MESSAGE = "openclaw:trustclaw:ptds-data-changed";

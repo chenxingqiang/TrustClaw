@@ -5,6 +5,7 @@ import { buildTrustclawPtdsAgentGuidance } from "./src/agent-guidance.js";
 import { createAgentChatHandler } from "./src/agent-routes.js";
 import { createAgentPacksHandler } from "./src/agent-pack-routes.js";
 import {
+  createSessionAgentPackDeleteHandler,
   createSessionAgentPackGetHandler,
   createSessionAgentPackPutHandler,
 } from "./src/session-agent-pack-routes.js";
@@ -186,11 +187,15 @@ export default definePluginEntry({
       handler: async (req, res) => {
         const getHandler = createSessionAgentPackGetHandler(cfg);
         const putHandler = createSessionAgentPackPutHandler(cfg);
+        const deleteHandler = createSessionAgentPackDeleteHandler(cfg);
         if (methodIs(req, "GET")) {
           return getHandler(req, res);
         }
         if (methodIs(req, "PUT")) {
           return putHandler(req, res);
+        }
+        if (methodIs(req, "DELETE")) {
+          return deleteHandler(req, res);
         }
         sendJson(res, 405, { status: "error", message: "Method not allowed." });
         return true;

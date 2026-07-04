@@ -1,8 +1,10 @@
 # TrustClaw PTDS — 5-Day Sprint Roadmap
 
-Maps spec tasks to OpenClaw reuse paths. **Decisions D1–D14 approved** (2026-07-04). Task 203 done; next: **301** audit + **501** UI.
+> **Supporting context only.** 任务 ID 与依赖图供 `AGENTS.md` 策略层引用；产品 Loop 执行协议见 [`AGENTS.md`](./AGENTS.md#trustclaw-无限优化闭环infinite-optimization-loop)。
 
-**Planning docs:** `PLAN.md` · `DECISIONS.md` · `OPENCLAW_REUSE.md`
+Maps tasks to OpenClaw reuse paths. **Decisions D1–D14 approved** (2026-07-04). Task 203 done; next: **301** audit + **501** UI.
+
+**Loop authority:** `AGENTS.md` · **Gates:** `DECISIONS.md` · **Reuse:** `OPENCLAW_REUSE.md`
 
 ## Architecture mapping
 

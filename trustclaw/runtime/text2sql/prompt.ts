@@ -3,27 +3,29 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadPtdsSchemaSnippet } from "./schema-context.js";
 
-const PROMPT_PATH = path.resolve(
+const DEFAULT_PROMPT_PATH = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../../agents/glp1/prompts/text2sql.v1.md",
 );
 
-let cachedTemplate: string | undefined;
+let cachedDefaultTemplate: string | undefined;
 
-function loadPromptTemplate(): string {
-  if (cachedTemplate) {
-    return cachedTemplate;
+export function loadDefaultText2SqlPromptTemplate(): string {
+  if (cachedDefaultTemplate) {
+    return cachedDefaultTemplate;
   }
-  cachedTemplate = readFileSync(PROMPT_PATH, "utf8");
-  return cachedTemplate;
+  cachedDefaultTemplate = readFileSync(DEFAULT_PROMPT_PATH, "utf8");
+  return cachedDefaultTemplate;
 }
 
 export function buildText2SqlPrompt(params: {
   userQuery: string;
   databaseSchema?: string;
+  promptTemplate?: string;
 }): string {
   const schema = params.databaseSchema?.trim() || loadPtdsSchemaSnippet();
-  return loadPromptTemplate()
+  const template = params.promptTemplate?.trim() || loadDefaultText2SqlPromptTemplate();
+  return template
     .replace("{{DATABASE_SCHEMA}}", schema)
     .replace("{{USER_QUERY}}", params.userQuery.trim());
 }

@@ -3946,6 +3946,8 @@ export function renderApp(state: AppViewState) {
                 packs: state.ptdsAgentPacks,
                 selectedPackId: state.ptdsSessionAgentPackId,
                 resolvedFrom: state.ptdsSessionAgentPackSource,
+                locked: state.ptdsSessionAgentPackLocked,
+                agentPackMismatch: state.ptdsSessionAgentPackMismatch,
                 loading: state.ptdsAgentPacksLoading,
                 saving: state.ptdsSessionAgentPackSaving,
                 error: state.ptdsAgentPacksError,

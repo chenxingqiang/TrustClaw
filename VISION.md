@@ -25,13 +25,12 @@ TrustClaw is forked from [OpenClaw](https://github.com/openclaw/openclaw). We re
 
 **Docs**
 
-- Product plan: `trustclaw/PLAN.md`
+- **Product loops (canonical):** `trustclaw/AGENTS.md`
+- Getting started: `trustclaw/GETTING_STARTED.md`
 - Decisions (审核): `trustclaw/DECISIONS.md`
+- Task IDs: `trustclaw/ROADMAP.md`
 - OpenClaw reuse: `trustclaw/OPENCLAW_REUSE.md`
-- Product spec: `trustclaw/PRODUCT_SPEC.md`
-- Sprint roadmap: `trustclaw/ROADMAP.md`
-- Agent loop guide: `trustclaw/AGENTS.md`
-- Spec source: `trustclaw/docs/SPEC-V1-source.md`
+- Background plan: `trustclaw/PLAN.md`
 - Upstream overview: `README.md`
 
 **What we optimize for (V1)**

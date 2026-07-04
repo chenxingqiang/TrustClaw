@@ -28,3 +28,10 @@ export {
   packEnablesWriteTool,
 } from "./guidance.js";
 export { resolveSessionAgentPack, type SessionAgentPackSource } from "./resolve-session.js";
+export {
+  resolveCoordinatorAgentPack,
+  resolveBoundAgentPack,
+  type CoordinatorPackResolution,
+} from "./resolve-session.js";
+export { loadAgentPackText2SqlTemplate } from "./text2sql-prompt.js";
+export { loadAgentPackPersonalWriteTemplate } from "./personal-write-prompt.js";

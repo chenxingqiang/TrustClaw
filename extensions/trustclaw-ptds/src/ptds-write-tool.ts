@@ -3,6 +3,10 @@ import type { TrustclawPluginConfig } from "../../../trustclaw/ptds/config.js";
 import { resolveTrustclawPaths } from "../../../trustclaw/ptds/config.js";
 import { executePersonalWrite } from "../../../trustclaw/ptds/personal-write.js";
 import { TRUSTCLAW_PTDS_WRITE_TOOL } from "../../../trustclaw/runtime/constants.js";
+import {
+  loadAgentPackPersonalWriteTemplate,
+  resolveBoundAgentPack,
+} from "../../../trustclaw/runtime/agent-pack/index.js";
 import type { Text2SqlLlmCaller } from "../../../trustclaw/runtime/pipeline/index.js";
 
 export type TrustclawPtdsWriteToolDeps = {
@@ -51,6 +55,11 @@ export function createTrustclawPtdsWriteToolFactory(
         const message = readMessageParam(params);
         const paths = resolveTrustclawPaths(pluginConfig);
         const sessionId = resolveSessionId(ctx);
+        const agentPack = resolveBoundAgentPack({
+          sessionKey: sessionId,
+          openclawAgentId: ctx.agentId,
+          pluginConfig,
+        }).pack;
         const result = await executePersonalWrite(
           {
             message,
@@ -61,6 +70,8 @@ export function createTrustclawPtdsWriteToolFactory(
             llm: deps.llm,
             dbPathOrOverrides: { dbPath: paths.dbPath, auditDir: paths.auditDir },
             auditDir: paths.auditDir,
+            promptTemplate: loadAgentPackPersonalWriteTemplate(agentPack),
+            writeTables: agentPack.data.writeTables,
           },
         );
 

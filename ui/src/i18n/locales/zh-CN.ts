@@ -462,6 +462,8 @@ export const zh_CN: TranslationMap = {
     agentPackSaving: "保存中…",
     agentPackFromAgent: "来自 OpenClaw Agent 配置",
     agentPackFromDefault: "使用默认 Agent Pack",
+    agentPackLocked: "本会话已锁定领域 Agent",
+    agentPackMismatch: "OpenClaw Agent 与锁定 Pack 不一致，仍以锁定 Pack 为准",
   },
   skillWorkshop: {
     header: {

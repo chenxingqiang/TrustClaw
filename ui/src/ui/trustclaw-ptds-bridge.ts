@@ -1,8 +1,16 @@
 // Bridges TrustClaw PTDS tool results to side-panel iframes and standalone shells.
 
 export const TRUSTCLAW_PTDS_QUERY_TOOL = "trustclaw_ptds_query";
+export const TRUSTCLAW_PTDS_WRITE_TOOL = "trustclaw_ptds_write";
 export const TRUSTCLAW_RUNTIME_CONTEXT_MESSAGE = "openclaw:trustclaw:runtime-context";
+export const TRUSTCLAW_PTDS_DATA_CHANGED_MESSAGE = "openclaw:trustclaw:ptds-data-changed";
 export const TRUSTCLAW_THEME_MESSAGE = "openclaw:theme";
+
+export type TrustclawPersonalWritePayload = {
+  status: string;
+  tables?: string[];
+  rows_affected?: number;
+};
 
 export type TrustclawRuntimeContextPayload = {
   session_id: string;
@@ -129,6 +137,61 @@ export function notifyTrustclawRuntimeContext(context: TrustclawRuntimeContextPa
   if (window.parent !== window) {
     window.parent.postMessage(message, "*");
   }
+}
+
+export function parsePersonalWriteFromToolResult(result: unknown): TrustclawPersonalWritePayload | null {
+  const record = readRecord(result);
+  if (!record) {
+    return null;
+  }
+  const trustclaw = readRecord(readRecord(record.details)?.trustclaw);
+  const write = readRecord(trustclaw?.personal_write);
+  if (!write || write.status !== "success") {
+    return null;
+  }
+  return {
+    status: "success",
+    tables: Array.isArray(write.tables)
+      ? write.tables.filter((value): value is string => typeof value === "string")
+      : undefined,
+    rows_affected: typeof write.rows_affected === "number" ? write.rows_affected : undefined,
+  };
+}
+
+export function notifyTrustclawPtdsDataChanged(payload: TrustclawPersonalWritePayload): void {
+  if (typeof document === "undefined") {
+    return;
+  }
+  const message = { type: TRUSTCLAW_PTDS_DATA_CHANGED_MESSAGE, payload };
+
+  for (const iframe of document.querySelectorAll<HTMLIFrameElement>("iframe.trustclaw-ptds-rail__frame")) {
+    const src = iframe.getAttribute("src") ?? "";
+    if (src.includes("embed=left") || src.includes("embed=right")) {
+      iframe.contentWindow?.postMessage(message, "*");
+    }
+  }
+
+  if (window.parent !== window) {
+    window.parent.postMessage(message, "*");
+  }
+}
+
+export function syncTrustclawPtdsDataChanged(
+  data: Record<string, unknown>,
+): void {
+  const payload =
+    parsePersonalWriteFromToolResult(data.result) ?? parsePersonalWriteFromToolResult(data);
+  if (!payload) {
+    return;
+  }
+  notifyTrustclawPtdsDataChanged(payload);
+}
+
+export function isTrustclawPtdsDataChangedMessage(
+  data: unknown,
+): data is { type: string; payload: TrustclawPersonalWritePayload } {
+  const record = readRecord(data);
+  return !!record && record.type === TRUSTCLAW_PTDS_DATA_CHANGED_MESSAGE;
 }
 
 export function syncTrustclawPtdsRuntimeContext(

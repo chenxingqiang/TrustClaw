@@ -1,6 +1,8 @@
 # TrustClaw 产品开发规划
 
-基于《产品规格说明书 V1》+ PTDS v1.1 数据模型 + OpenClaw _fork 最大化复用策略。
+> **Supporting context only.** TrustClaw 产品 Loop 的唯一驱动协议是 [`AGENTS.md`](./AGENTS.md)（Product loop authority + 无限优化闭环）。本文件提供阶段背景与历史任务矩阵；**不得**用本文件替代 `AGENTS.md` 启动 Loop。
+
+基于 PTDS v1.1 数据模型 + OpenClaw fork 最大化复用策略。
 
 **审核门禁：** `DECISIONS.md` 已于 2026-07-04 全部确认（D5/D15 为 deferred）。
 
@@ -96,11 +98,13 @@ flowchart TB
   PC -->|Runtime Context| UI
 ```
 
-握手 JSON 合约见 `PRODUCT_SPEC.md` 与规格书「关键流程衔接」章节。
+握手 JSON 合约见 `trustclaw/runtime/pipeline/types.ts` 与各 stage handshake types。
 
 ---
 
-## 6. DoD 检查表（规格书 Definition of Done）
+## 6. DoD 检查表（Definition of Done）
+
+> **Canonical copy:** [`AGENTS.md` — V1 DoD 闸门](./AGENTS.md#v1-dod-闸门verification-必勾). Loop Verify/Evolve 以该节为准。
 
 开发 Agent 在 **Verification** 阶段必须逐项勾选：
 
@@ -122,8 +126,6 @@ flowchart TB
 
 | 文档 | 用途 |
 | --- | --- |
-| `docs/SPEC-V1-source.md` | 规格书原文 |
-| `PRODUCT_SPEC.md` | 冻结 API/Schema/合约 |
 | `DECISIONS.md` | 待确认决策 |
 | `OPENCLAW_REUSE.md` | OpenClaw 复用映射 |
 | `ROADMAP.md` | 5 天排期 |

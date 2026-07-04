@@ -2,19 +2,31 @@
 
 TrustClaw runs **on OpenClaw Gateway** with the `trustclaw-ptds` plugin. Product UX is **TrustClaw-first**: Control UI opens **PTDS Console** by default; OpenClaw Chat and operator tools remain in the sidebar.
 
+**Product development loops:** driven exclusively by [`AGENTS.md`](./AGENTS.md) (Product loop authority + Infinite Optimization Loop). Do not start feature work from `PLAN.md` or `ROADMAP.md` alone.
+
 ## Quick start (development)
+
+Runtime defaults are **TrustClaw-first** (no manual setup required for port/plugin):
+
+- Gateway port **19001** when `gateway.port` is unset (`src/config/trustclaw-product-defaults.ts`)
+- Plugin **`trustclaw-ptds`** enabled unless explicitly disabled
 
 ```bash
 pnpm install --config.minimumReleaseAge=0
-pnpm trustclaw:setup          # enable plugin + gateway.port 19001 (default + dev profiles)
 pnpm trustclaw:dev            # gateway :19001 + Vite UI :5174
+```
+
+Optional — persist port/plugin into config files and sync dev workspace prompts:
+
+```bash
+pnpm trustclaw:setup          # writes gateway.port + plugin flag to default/dev profiles
 ```
 
 Open either:
 
 | URL                                 | Experience                                                                               |
 | ----------------------------------- | ---------------------------------------------------------------------------------------- |
-| `http://127.0.0.1:19001/`           | **TrustClaw** — Control UI → **PTDS Console** (default after `trustclaw:setup`)         |
+| `http://127.0.0.1:19001/`           | **TrustClaw** — Control UI → **PTDS Console** (default tab)                             |
 | `http://127.0.0.1:5174/trustclaw/`  | Standalone PTDS Runtime Console (dev, hot reload; center chat iframe to gateway `/chat`) |
 | `http://127.0.0.1:19001/trustclaw/` | Bundled console (after `pnpm trustclaw:ui:build` + gateway on `:19001`)                  |
 
@@ -87,6 +99,18 @@ The **dev** agent (`C3-PO`) uses TrustClaw PTDS presets — not the generic Clau
 - `pnpm trustclaw:setup` syncs `trustclaw/workspace/dev/{SOUL,IDENTITY,AGENTS}.md` → `~/.openclaw/workspace-dev/`
 
 After setup, **start a new chat session** (or `/new`) so the updated system prompt loads. Ask “What can you do?” — the reply should describe PTDS panels A–E and `trustclaw_ptds_query`, not IDE/coding features.
+
+## Multi-agent packs (Phase 3)
+
+`pnpm trustclaw:setup` registers three OpenClaw agents and syncs workspace prompts:
+
+| OpenClaw `agentId` | Agent pack | Workspace template |
+| ------------------ | ---------- | ------------------ |
+| `main` (dev) | `glp1-eligibility` (C3-PO) | `trustclaw/workspace/dev` |
+| `nrdl-reimburse` | `nrdl-reimburse` | `trustclaw/workspace/nrdl-reimburse` |
+| `compliance-auditor` | `compliance-auditor` | `trustclaw/workspace/compliance-auditor` |
+
+In **PTDS Console**, use the **领域 Agent** dropdown above chat to bind a pack per session (`PUT /api/ptds/session/agent-pack`), or switch the OpenClaw agent in the chat sidebar. Restart Gateway after `trustclaw:setup` so new agents appear.
 
 ## Demo flow (frozen V1)
 

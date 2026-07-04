@@ -192,12 +192,21 @@ fi
 
 cd "$ROOT_DIR/apps/macos"
 
-echo "🔨 Building $PRODUCT ($BUILD_CONFIG) [${BUILD_ARCHS[*]}]"
-for arch in "${BUILD_ARCHS[@]}"; do
-  BUILD_PATH="$(build_path_for_arch "$arch")"
-  swift build -c "$BUILD_CONFIG" --product "$PRODUCT" --build-path "$BUILD_PATH" --arch "$arch" -Xlinker -rpath -Xlinker @executable_path/../Frameworks
-  swift build --package-path "$MLX_TTS_HELPER_ROOT" -c "$BUILD_CONFIG" --product "$MLX_TTS_HELPER_PRODUCT" --build-path "$(helper_build_path_for_arch "$arch")" --arch "$arch"
-done
+SWIFT_RESOLUTION_FLAGS=()
+if [[ "${SWIFT_DISABLE_AUTOMATIC_RESOLUTION:-0}" == "1" ]]; then
+  SWIFT_RESOLUTION_FLAGS=(--disable-automatic-resolution)
+fi
+
+if [[ "${SKIP_SWIFT_BUILD:-0}" == "1" ]]; then
+  echo "🔨 Skipping Swift build (SKIP_SWIFT_BUILD=1)"
+else
+  echo "🔨 Building $PRODUCT ($BUILD_CONFIG) [${BUILD_ARCHS[*]}]"
+  for arch in "${BUILD_ARCHS[@]}"; do
+    BUILD_PATH="$(build_path_for_arch "$arch")"
+    swift build -c "$BUILD_CONFIG" --product "$PRODUCT" --build-path "$BUILD_PATH" --arch "$arch" "${SWIFT_RESOLUTION_FLAGS[@]}" -Xlinker -rpath -Xlinker @executable_path/../Frameworks
+    swift build --package-path "$MLX_TTS_HELPER_ROOT" -c "$BUILD_CONFIG" --product "$MLX_TTS_HELPER_PRODUCT" --build-path "$(helper_build_path_for_arch "$arch")" --arch "$arch" "${SWIFT_RESOLUTION_FLAGS[@]}"
+  done
+fi
 
 BIN_PRIMARY="$(bin_for_arch "$PRIMARY_ARCH")"
 echo "pkg: binary $BIN_PRIMARY" >&2

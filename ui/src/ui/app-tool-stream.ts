@@ -13,7 +13,9 @@ import {
 import { normalizeLowercaseStringOrEmpty } from "./string-coerce.ts";
 import {
   syncTrustclawPtdsRuntimeContext,
+  syncTrustclawPtdsDataChanged,
   TRUSTCLAW_PTDS_QUERY_TOOL,
+  TRUSTCLAW_PTDS_WRITE_TOOL,
 } from "./trustclaw-ptds-bridge.ts";
 
 const TOOL_STREAM_LIMIT = 50;
@@ -789,6 +791,9 @@ export function handleAgentEvent(host: ToolStreamHost, payload?: AgentEventPaylo
   }
   if (name === TRUSTCLAW_PTDS_QUERY_TOOL && phase === "result") {
     syncTrustclawPtdsRuntimeContext(host, data);
+  }
+  if (name === TRUSTCLAW_PTDS_WRITE_TOOL && phase === "result") {
+    syncTrustclawPtdsDataChanged(data);
   }
 
   const now = Date.now();

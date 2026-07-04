@@ -2,6 +2,8 @@ export type Text2SqlGenerateInput = {
   userQuery: string;
   /** Full or subset DDL injected into the prompt. */
   databaseSchema?: string;
+  /** Pack-specific prompt template with {{DATABASE_SCHEMA}} and {{USER_QUERY}} placeholders. */
+  promptTemplate?: string;
 };
 
 export type Text2SqlLlmCaller = (prompt: string) => Promise<string>;

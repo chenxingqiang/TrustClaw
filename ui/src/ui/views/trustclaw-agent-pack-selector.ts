@@ -6,7 +6,15 @@ import type { TrustclawAgentPackSummary } from "../controllers/trustclaw-ptds.ts
 export type TrustclawAgentPackSelectorParams = {
   packs: TrustclawAgentPackSummary[];
   selectedPackId: string | null;
-  resolvedFrom: "session" | "openclaw_agent" | "default" | null;
+  resolvedFrom:
+    | "session"
+    | "lock"
+    | "openclaw_agent"
+    | "default"
+    | "request"
+    | null;
+  locked: boolean;
+  agentPackMismatch: boolean;
   loading: boolean;
   saving: boolean;
   error: string | null;
@@ -21,13 +29,17 @@ function packLabel(pack: TrustclawAgentPackSummary): string {
   return pack.displayName.en;
 }
 
-function resolvedFromHint(
-  source: TrustclawAgentPackSelectorParams["resolvedFrom"],
-): string | null {
-  if (!source || source === "session") {
+function resolvedFromHint(params: TrustclawAgentPackSelectorParams): string | null {
+  if (params.agentPackMismatch) {
+    return t("ptdsPanel.agentPackMismatch");
+  }
+  if (params.locked || params.resolvedFrom === "lock") {
+    return t("ptdsPanel.agentPackLocked");
+  }
+  if (!params.resolvedFrom || params.resolvedFrom === "session" || params.resolvedFrom === "request") {
     return null;
   }
-  if (source === "openclaw_agent") {
+  if (params.resolvedFrom === "openclaw_agent") {
     return t("ptdsPanel.agentPackFromAgent");
   }
   return t("ptdsPanel.agentPackFromDefault");
@@ -36,7 +48,7 @@ function resolvedFromHint(
 export function renderTrustclawAgentPackSelector(
   params: TrustclawAgentPackSelectorParams,
 ): TemplateResult {
-  const hint = resolvedFromHint(params.resolvedFrom);
+  const hint = resolvedFromHint(params);
   const disabled = params.loading || params.saving || params.packs.length === 0;
 
   return html`<div class="trustclaw-ptds-agent-pack" aria-label=${t("ptdsPanel.agentPackLabel")}>

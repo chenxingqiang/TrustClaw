@@ -57,7 +57,7 @@ Init → Chat → Text2SQL → Query → RuleEval → GLP-1 Decision → Audit �
 | **102** | POST /api/ptds/init | Dev A | 101, D2 | 映射写入 v1.1 表，返回 spec JSON | pending |
 | **201** | Runtime.Text2SQL | Dev B | D7 | NL→纯 SELECT，无 markdown | pending |
 | **202** | Runtime.ExecRule | Dev B | 101, D6 | PASS/FAIL 矩阵 JSON | pending |
-| **203** | Runtime.Dispatch + chat API | Dev B | 102,201,202, D4 | 完整 Runtime Context | pending |
+| **203** | Runtime.Dispatch + chat API | Dev B | 102,201,202, D4 | 完整 Runtime Context | **done** |
 | **301** | Audit.Record | Dev C | 203, D8 | 每 Chat ≥5 条审计事件 | pending |
 | **401** | Ledger.Commit | Dev C | 301, D9 | SHA-256 链可校验 | pending |
 | **501** | UI.RenderAll（表单+Chat） | Dev D | D3 | Chrome 五区块布局 | pending |

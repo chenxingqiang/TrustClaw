@@ -1,3 +1,4 @@
+export { createOpenAiText2SqlLlm } from "./openai-llm.js";
 export { generateText2Sql } from "./generate.js";
 export { buildText2SqlPrompt } from "./prompt.js";
 export { extractSqlFromLlmOutput } from "./sanitize.js";

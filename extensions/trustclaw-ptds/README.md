@@ -29,5 +29,8 @@ pnpm openclaw gateway run
 | GET | `/api/ptds/status` | Mounted status + GLP-1 snapshot |
 | GET | `/api/ptds/tables` | List browsable tables |
 | GET | `/api/ptds/browse?table=...` | Read-only table preview |
+| POST | `/api/agent/chat` | GLP-1 pipeline chat → Runtime Context JSON |
+
+Text2SQL uses `OPENAI_API_KEY` (optional `TRUSTCLAW_TEXT2SQL_MODEL`, default `gpt-4.1-mini`).
 
 Default DB: `$OPENCLAW_STATE_DIR/state/local_ptds.db` (usually `~/.openclaw/state/local_ptds.db`).

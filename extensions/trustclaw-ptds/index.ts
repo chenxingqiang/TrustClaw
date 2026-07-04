@@ -1,5 +1,7 @@
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
 import type { TrustclawPluginConfig } from "../../trustclaw/ptds/config.js";
+import { createOpenAiText2SqlLlm } from "../../trustclaw/runtime/text2sql/openai-llm.js";
+import { createAgentChatHandler } from "./src/agent-routes.js";
 import {
   createPtdsBrowseHandler,
   createPtdsInitHandler,
@@ -28,6 +30,7 @@ export default definePluginEntry({
   description: "Personal Trusted Data Space runtime APIs for TrustClaw",
   register(api) {
     const cfg = readPluginConfig(api.pluginConfig);
+    const text2sqlLlm = createOpenAiText2SqlLlm();
     api.registerHttpRoute({
       path: "/api/ptds/init",
       auth: "plugin",
@@ -58,6 +61,14 @@ export default definePluginEntry({
       match: "exact",
       handler: createPtdsBrowseHandler(cfg),
     });
-    api.logger.info?.("[trustclaw-ptds] registered PTDS HTTP routes under /api/ptds/*");
+    api.registerHttpRoute({
+      path: "/api/agent/chat",
+      auth: "plugin",
+      match: "exact",
+      handler: createAgentChatHandler(cfg, { llm: text2sqlLlm }),
+    });
+    api.logger.info?.(
+      "[trustclaw-ptds] registered PTDS HTTP routes under /api/ptds/* and POST /api/agent/chat",
+    );
   },
 });

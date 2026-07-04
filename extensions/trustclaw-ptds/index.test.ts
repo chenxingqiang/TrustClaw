@@ -4,9 +4,10 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { describe, expect, it, vi } from "vitest";
+import { createAgentChatHandler } from "./src/agent-routes.js";
+import { createPtdsInitHandler } from "./src/ptds-routes.js";
 import plugin from "./index.js";
 import manifest from "./openclaw.plugin.json" with { type: "json" };
-import { createPtdsInitHandler } from "./src/ptds-routes.js";
 
 function createMockResponse(): ServerResponse & { getBody: () => string } {
   const state = { statusCode: 200, body: "" };
@@ -51,6 +52,7 @@ describe("trustclaw-ptds plugin", () => {
       "/api/ptds/status",
       "/api/ptds/tables",
       "/api/ptds/browse",
+      "/api/agent/chat",
     ]);
     expect(routes.every((route) => route.auth === "plugin" && route.match === "exact")).toBe(true);
   });
@@ -85,6 +87,61 @@ describe("trustclaw-ptds plugin", () => {
       expect(payload.status).toBe("success");
       expect(payload.records_inserted).toBeGreaterThanOrEqual(4);
       expect(payload.db_file).toBe(dbPath);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("handles POST /api/agent/chat with Runtime Context contract", async () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "trustclaw-plugin-chat-"));
+    const dbPath = path.join(dir, "local_ptds.db");
+    try {
+      const initHandler = createPtdsInitHandler({ dbPath });
+      const initReq = {
+        method: "POST",
+        async *[Symbol.asyncIterator]() {
+          yield JSON.stringify({
+            weight: 85,
+            height: 170,
+            hba1c: 6.8,
+            thyroid_cancer_history: 0,
+            pancreatitis_history: 0,
+            include_t2dm_diagnosis: true,
+          });
+        },
+      } as IncomingMessage;
+      const initRes = createMockResponse();
+      await initHandler(initReq, initRes);
+      expect(initRes.statusCode).toBe(200);
+
+      const chatHandler = createAgentChatHandler(
+        { dbPath },
+        {
+          llm: async () =>
+            "SELECT * FROM v_glp1_nrdl_check_snapshot WHERE user_id = 'local_user' LIMIT 1",
+        },
+      );
+      const chatReq = {
+        method: "POST",
+        async *[Symbol.asyncIterator]() {
+          yield JSON.stringify({
+            session_id: "sess_plugin_test",
+            message: "我可以用司美格鲁肽吗？",
+          });
+        },
+      } as IncomingMessage;
+      const chatRes = createMockResponse();
+      const handled = await chatHandler(chatReq, chatRes);
+      expect(handled).toBe(true);
+      expect(chatRes.statusCode).toBe(200);
+      const payload = JSON.parse(chatRes.getBody()) as {
+        session_id: string;
+        pipeline_stages: { agent_decision: { response: string } };
+        audit_trail_id: string;
+      };
+      expect(payload.session_id).toBe("sess_plugin_test");
+      expect(payload.pipeline_stages.agent_decision.response).toContain("Evidence");
+      expect(payload.audit_trail_id).toMatch(/^aud_/);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

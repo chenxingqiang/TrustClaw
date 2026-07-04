@@ -306,7 +306,8 @@ node scripts/run-vitest.mjs trustclaw/runtime/rules/evaluate.test.ts
 - **基线（2026-07-04）**：`DECISIONS.md` D1–D14 approved；V1 冻结 Init → Chat → … → Dashboard；OpenClaw 底座 + `extensions/trustclaw-ptds`（D2）。
 - **Loop R1（2026-07-04，Task 101–102）**：PTDS v1.1 schema、init/reset、`PTDS_LOCAL_USER_ID`、插件 HTTP 路由；移除 `demo_user` / fallback Text2SQL 等产品外 shortcut。验证：`pnpm test trustclaw/ptds/init.test.ts`。
 - **Loop R2（2026-07-04，Task 201–202）**：LLM Text2SQL + SELECT 守卫握手；确定性 `evaluateGlp1Rules` vs `nrdl_payment_rules` + snapshot。验证：`generate.test.ts` + `evaluate.test.ts`。
-- **下一轮建议（R3）**：Task **203** — `trustclaw/runtime/pipeline/` + `POST /api/agent/chat` 骨架；握手 1→2→3 串联；仍不碰 D5/D15。
+- **Loop R3（2026-07-04，Task 203）**：`runTrustclawChat` 串联 Text2SQL→Query→RuleEval→GLP-1 决策；`POST /api/agent/chat` 返回 Runtime Context；占位 `audit_trail_id` + `proof_hash`（301/401 待接）。验证：`node scripts/run-vitest.mjs trustclaw/runtime/pipeline/run-chat.test.ts extensions/trustclaw-ptds/index.test.ts`。
+- **下一轮建议（R4）**：Task **301** — `trustclaw/audit/` JSONL 五步审计；Task **501** SPA 骨架可并行。
 
 ---
 
@@ -333,7 +334,7 @@ node scripts/run-vitest.mjs trustclaw/runtime/rules/evaluate.test.ts
 | Plugin API | `extensions/trustclaw-ptds/` | 102 ✓, 203, reset | plugins-http |
 | Text2SQL | `trustclaw/runtime/text2sql/` | 201 | `src/llm/` |
 | Rule engine | `trustclaw/runtime/rules/` | 202 | — |
-| Pipeline | `trustclaw/runtime/pipeline/` | 203 | runner patterns |
+| Pipeline | `trustclaw/runtime/pipeline/` | 203 ✓ | runner patterns |
 | GLP-1 prompts | `trustclaw/agents/glp1/` | 203 | skills-like prompts |
 | Audit | `trustclaw/audit/` | 301 | diagnostic-events |
 | Ledger | `trustclaw/ledger/` | 401 | — |

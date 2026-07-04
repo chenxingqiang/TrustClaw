@@ -1,6 +1,6 @@
 # TrustClaw PTDS — 5-Day Sprint Roadmap
 
-Maps spec tasks to OpenClaw reuse paths. **Decisions D1–D14 approved** (2026-07-04). Next: Task 102.
+Maps spec tasks to OpenClaw reuse paths. **Decisions D1–D14 approved** (2026-07-04). Task 203 done; next: **301** audit + **501** UI.
 
 **Planning docs:** `PLAN.md` · `DECISIONS.md` · `OPENCLAW_REUSE.md`
 

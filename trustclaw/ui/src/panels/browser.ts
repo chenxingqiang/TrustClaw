@@ -11,14 +11,22 @@ export function renderBrowser(
 } {
   const m = msg().panels.browser;
   root.innerHTML = `
-    <section class="panel" data-panel="browser">
-      <header><h2>${escapeHtml(m.title)}</h2></header>
-      <p class="panel-note">${escapeHtml(m.mountNote)}<strong data-testid="browser-mounted">${escapeHtml(m.unknown)}</strong></p>
-      <div class="controls">
-        <select data-testid="browser-table"></select>
-        <button data-action="reload">${escapeHtml(m.reload)}</button>
+    <section class="panel panel--b" data-panel="browser">
+      <header class="panel__header">
+        <h2>${escapeHtml(m.title)}</h2>
+      </header>
+      <div class="panel__body">
+        <p class="panel-note">
+          ${escapeHtml(m.mountNote)}
+          <span class="tag tag--muted" data-testid="browser-mounted">${escapeHtml(m.unknown)}</span>
+        </p>
+        <p class="panel-note">${escapeHtml(m.viewerLabel)}</p>
+        <div class="controls">
+          <select data-testid="browser-table"></select>
+          <button type="button" data-action="reload">${escapeHtml(m.reload)}</button>
+        </div>
+        <div class="table-container" data-testid="browser-table-container"></div>
       </div>
-      <div class="table-container" data-testid="browser-table-container"></div>
     </section>
   `;
 
@@ -27,12 +35,22 @@ export function renderBrowser(
   const reloadBtn = root.querySelector<HTMLButtonElement>('[data-action="reload"]')!;
   const mountedEl = root.querySelector<HTMLElement>('[data-testid="browser-mounted"]')!;
 
+  function setMountedTag(mounted: boolean | null): void {
+    if (mounted === null) {
+      mountedEl.textContent = m.unknown;
+      mountedEl.className = "tag tag--muted";
+      return;
+    }
+    mountedEl.textContent = mounted ? m.mounted : m.notMounted;
+    mountedEl.className = mounted ? "tag tag--ok" : "tag tag--warn";
+  }
+
   async function refreshMounted(): Promise<void> {
     try {
       const status = await client.status();
-      mountedEl.textContent = status.mounted ? m.mounted : m.notMounted;
+      setMountedTag(status.mounted);
     } catch {
-      mountedEl.textContent = m.unknown;
+      setMountedTag(null);
     }
   }
 

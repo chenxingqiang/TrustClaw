@@ -14,6 +14,10 @@ export const en: TrustclawMessages = {
     language: "Language",
     langEn: "English",
     langZh: "中文",
+    chatFrameTitle: "OpenClaw Chat",
+    chatInControlUiTitle: "OpenClaw Chat",
+    chatInControlUiBody:
+      "Embedded from Control UI. Prefer the PTDS Console tab in gateway Control UI for the native chat workbench with collapsible side rails.",
   },
   panels: {
     landing: {
@@ -36,6 +40,7 @@ export const en: TrustclawMessages = {
     browser: {
       title: "B · Personal Data Space (PTDS) Browser",
       mountNote: "SQLite database status:",
+      viewerLabel: "Data viewer",
       mounted: "Mounted",
       notMounted: "Not mounted",
       unknown: "Unknown",
@@ -48,12 +53,15 @@ export const en: TrustclawMessages = {
     },
     chat: {
       title: "C · Trustworthy Q&A",
-      placeholder: "Can I use semaglutide?",
+      placeholder: "Enter your question…",
       send: "Send",
+      userLabel: "User",
+      assistantLabel: "AI",
       noResponse: "(no response)",
     },
     audit: {
       title: "D · Runtime Audit",
+      stepUser: "0 · User Input",
       stepText2sql: "1 · Text2SQL",
       stepQuery: "2 · PTDS Query",
       stepRules: "3 · Rule Evaluation",
@@ -64,6 +72,11 @@ export const en: TrustclawMessages = {
     ledger: {
       title: "E · Evidence Ledger",
       placeholder: "Placeholder (Task 401)",
+      blockHeight: "Ledger height",
+      rootHash: "Root hash",
+      proofLabel: "Proof JSON",
+      copyProof: "Copy",
+      copiedProof: "Copied",
     },
   },
 };

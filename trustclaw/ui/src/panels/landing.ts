@@ -15,25 +15,32 @@ export function renderLanding(
 ): void {
   const m = msg().panels.landing;
   root.innerHTML = `
-    <section class="panel" data-panel="landing">
-      <header><h2>${escapeHtml(m.title)}</h2><span class="status" data-testid="landing-status">${escapeHtml(m.notMounted)}</span></header>
-      <form data-testid="init-form">
-        <label>${escapeHtml(m.name)} <input name="name" type="text" value="张三" /></label>
-        <label>${escapeHtml(m.weight)} <input name="weight" type="number" step="0.1" value="82" required /></label>
-        <label>${escapeHtml(m.height)} <input name="height" type="number" step="0.1" value="170" required /></label>
-        <label>${escapeHtml(m.hba1c)} <input name="hba1c" type="number" step="0.1" value="6.8" required /></label>
-        <fieldset class="history-fieldset">
-          <legend>${escapeHtml(m.historyLegend)}</legend>
-          <label><input name="thyroid_cancer_history" type="checkbox" /> ${escapeHtml(m.thyroid)}</label>
-          <label><input name="pancreatitis_history" type="checkbox" /> ${escapeHtml(m.pancreatitis)}</label>
-          <label><input name="include_t2dm_diagnosis" type="checkbox" checked /> ${escapeHtml(m.t2dm)}</label>
-        </fieldset>
-        <div class="actions">
-          <button type="submit">${escapeHtml(m.initBtn)}</button>
-          <button type="button" data-action="reset">${escapeHtml(m.resetBtn)}</button>
-        </div>
-        <pre data-testid="landing-result" class="result"></pre>
-      </form>
+    <section class="panel panel--a" data-panel="landing">
+      <header class="panel__header">
+        <h2>${escapeHtml(m.title)}</h2>
+        <span class="tag tag--warn" data-testid="landing-status">${escapeHtml(m.notMounted)}</span>
+      </header>
+      <div class="panel__body">
+        <form class="init-form" data-testid="init-form">
+          <div class="init-form__grid">
+            <label>${escapeHtml(m.name)} <input name="name" type="text" value="张三" /></label>
+            <label>${escapeHtml(m.weight)} <input name="weight" type="number" step="0.1" value="82" required /></label>
+            <label>${escapeHtml(m.height)} <input name="height" type="number" step="0.1" value="170" required /></label>
+            <label>${escapeHtml(m.hba1c)} <input name="hba1c" type="number" step="0.1" value="6.8" required /></label>
+          </div>
+          <fieldset class="history-fieldset">
+            <legend>${escapeHtml(m.historyLegend)}</legend>
+            <label><input name="thyroid_cancer_history" type="checkbox" /> ${escapeHtml(m.thyroid)}</label>
+            <label><input name="pancreatitis_history" type="checkbox" /> ${escapeHtml(m.pancreatitis)}</label>
+            <label><input name="include_t2dm_diagnosis" type="checkbox" checked /> ${escapeHtml(m.t2dm)}</label>
+          </fieldset>
+          <div class="actions">
+            <button type="submit" class="btn-primary">${escapeHtml(m.initBtn)}</button>
+            <button type="button" data-action="reset">${escapeHtml(m.resetBtn)}</button>
+          </div>
+          <pre data-testid="landing-result" class="result"></pre>
+        </form>
+      </div>
     </section>
   `;
 
@@ -42,9 +49,15 @@ export function renderLanding(
   const form = root.querySelector<HTMLFormElement>('[data-testid="init-form"]')!;
   const resetBtn = root.querySelector<HTMLButtonElement>('[data-action="reset"]')!;
 
+  function setMounted(mounted: boolean): void {
+    statusEl.textContent = mounted ? m.mounted : m.notMounted;
+    statusEl.classList.toggle("tag--ok", mounted);
+    statusEl.classList.toggle("tag--warn", !mounted);
+  }
+
   void client.status().then((s) => {
     if (s.mounted) {
-      statusEl.textContent = m.mounted;
+      setMounted(true);
     }
   });
 
@@ -68,7 +81,7 @@ export function renderLanding(
       const response = await client.init(body);
       resultEl.textContent = JSON.stringify(response, null, 2);
       if (response.status === "success") {
-        statusEl.textContent = m.mounted;
+        setMounted(true);
         handlers.onInitialized();
       }
     } catch (error) {
@@ -81,7 +94,7 @@ export function renderLanding(
     try {
       const response = await client.reset();
       resultEl.textContent = JSON.stringify(response, null, 2);
-      statusEl.textContent = m.notMounted;
+      setMounted(false);
       handlers.onReset();
     } catch (error) {
       resultEl.textContent = `${msg().panels.browser.loadError}: ${(error as Error).message}`;

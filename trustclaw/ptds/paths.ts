@@ -1,8 +1,23 @@
+import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const TRUSTCLAW_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+function resolveTrustclawRoot(moduleUrl: string = import.meta.url): string {
+  const moduleDir = path.dirname(fileURLToPath(moduleUrl));
+  const candidates = [
+    path.resolve(moduleDir, ".."),
+    path.resolve(moduleDir, "..", "..", "..", "trustclaw"),
+  ];
+  for (const root of candidates) {
+    if (fs.existsSync(path.join(root, "ptds/schema/v1.1.sql"))) {
+      return root;
+    }
+  }
+  return path.resolve(moduleDir, "..");
+}
+
+const TRUSTCLAW_ROOT = resolveTrustclawRoot();
 
 export const PTDS_SCHEMA_V11_SQL = path.join(TRUSTCLAW_ROOT, "ptds/schema/v1.1.sql");
 export const PTDS_SEED_NRDL_GLP1_SQL = path.join(TRUSTCLAW_ROOT, "ptds/seeds/nrdl-glp1-seed.sql");

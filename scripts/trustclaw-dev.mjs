@@ -30,31 +30,45 @@ function shutdown(code = 0) {
 process.on("SIGINT", () => shutdown(0));
 process.on("SIGTERM", () => shutdown(0));
 
-console.log("[trustclaw:dev] Enabling trustclaw-ptds plugin in local config…");
-const setup = spawnSync(process.execPath, [path.join(repoRoot, "scripts/trustclaw-setup.mjs")], {
-  cwd: repoRoot,
-  stdio: "inherit",
-  env: process.env,
-});
+console.log("[trustclaw:dev] Enabling trustclaw-ptds plugin in local dev config…");
+const setup = spawnSync(
+  process.execPath,
+  [path.join(repoRoot, "scripts/trustclaw-setup.mjs"), "--dev"],
+  {
+    cwd: repoRoot,
+    stdio: "inherit",
+    env: process.env,
+  },
+);
 if ((setup.status ?? 1) !== 0) {
   process.exit(setup.status ?? 1);
 }
 
 console.log("[trustclaw:dev] Starting Gateway (channels skipped) + TrustClaw UI (Vite)…");
-console.log("[trustclaw:dev] Open http://127.0.0.1:5174/trustclaw/ or Control UI → PTDS Console");
+console.log(
+  "[trustclaw:dev] Open http://127.0.0.1:5174/trustclaw/ (API proxied to gateway :19001 dev port)",
+);
+
+const devEnv = {
+  ...process.env,
+  OPENCLAW_SKIP_CHANNELS: "1",
+  OPENCLAW_GATEWAY_PORT: "19001",
+};
 
 children.push(
-  runNodeScript("scripts/run-with-env.mjs", [
-    "OPENCLAW_SKIP_CHANNELS=1",
-    "--",
-    process.execPath,
-    path.join(repoRoot, "scripts/run-node.mjs"),
-    "--dev",
-    "gateway",
-    "--force",
-  ]),
+  spawn(process.execPath, [path.join(repoRoot, "scripts/run-node.mjs"), "--dev", "gateway"], {
+    cwd: repoRoot,
+    stdio: "inherit",
+    env: devEnv,
+  }),
 );
-children.push(runNodeScript("scripts/trustclaw-ui.js", ["dev"]));
+children.push(
+  spawn(process.execPath, [path.join(repoRoot, "scripts/trustclaw-ui.js"), "dev"], {
+    cwd: repoRoot,
+    stdio: "inherit",
+    env: devEnv,
+  }),
+);
 
 for (const child of children) {
   child.on("exit", (code) => {

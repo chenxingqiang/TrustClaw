@@ -450,6 +450,14 @@ export const zh_CN: TranslationMap = {
     logs: "实时网关日志。",
     dreams: "睡眠时进行记忆巩固。",
   },
+  ptdsPanel: {
+    leftRail: "PTDS 初始化与数据",
+    rightRail: "审计与账本",
+    collapseLeft: "收起左侧面板",
+    expandLeft: "展开左侧面板",
+    collapseRight: "收起右侧面板",
+    expandRight: "展开右侧面板",
+  },
   skillWorkshop: {
     header: {
       useCurrentChat: "使用当前聊天",

@@ -91,6 +91,41 @@ export function buildBrowseUrl(base: string, table: string, limit?: number): str
   return url.pathname + url.search;
 }
 
+/** Resolve API base URL. Empty string uses same-origin relative paths (gateway or Vite proxy). */
+export function resolveApiBaseUrl(
+  env: { VITE_GATEWAY_URL?: string } | undefined,
+  location: Pick<Location, "origin">,
+): string {
+  const override = env?.VITE_GATEWAY_URL?.trim();
+  if (override) {
+    return override.replace(/\/$/, "");
+  }
+  return "";
+}
+
+/** Resolve Control UI origin for embedded chat iframes (gateway in dev, same-origin when bundled). */
+export function resolveGatewayControlUiOrigin(
+  env: { VITE_GATEWAY_URL?: string } | undefined,
+  location: Pick<Location, "origin">,
+): string {
+  const override = env?.VITE_GATEWAY_URL?.trim();
+  if (override) {
+    return override.replace(/\/$/, "");
+  }
+  return location.origin;
+}
+
+/** Build Control UI chat route for iframe embeds. */
+export function buildControlUiChatSrc(
+  env: { VITE_GATEWAY_URL?: string } | undefined,
+  location: Pick<Location, "origin">,
+  basePath = "",
+): string {
+  const origin = resolveGatewayControlUiOrigin(env, location);
+  const prefix = basePath ? `${basePath.replace(/\/$/, "")}/chat` : "/chat";
+  return `${origin}${prefix.startsWith("/") ? prefix : `/${prefix}`}`;
+}
+
 /** Minimal fetch wrapper — keeps error surface uniform for panels. */
 export async function callJson<TResponse>(
   fetchImpl: typeof fetch,
@@ -98,7 +133,7 @@ export async function callJson<TResponse>(
   path: string,
   init?: RequestInit,
 ): Promise<TResponse> {
-  const url = baseUrl.replace(/\/$/, "") + path;
+  const url = baseUrl ? `${baseUrl.replace(/\/$/, "")}${path}` : path;
   const response = await fetchImpl(url, {
     ...init,
     headers: { "content-type": "application/json", ...(init?.headers ?? {}) },
@@ -108,7 +143,13 @@ export async function callJson<TResponse>(
   try {
     parsed = text.length > 0 ? JSON.parse(text) : null;
   } catch {
-    throw new Error(`Non-JSON response from ${path}: ${text.slice(0, 200)}`);
+    const hint =
+      response.status === 404
+        ? " — PTDS plugin route missing; run `pnpm trustclaw:setup` and restart gateway"
+        : "";
+    throw new Error(
+      `Non-JSON response from ${path} (${response.status})${hint}: ${text.slice(0, 200)}`,
+    );
   }
   return parsed as TResponse;
 }

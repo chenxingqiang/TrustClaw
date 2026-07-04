@@ -451,6 +451,14 @@ export const en: TranslationMap = {
     logs: "Live gateway logs.",
     dreams: "Memory dreaming, consolidation, and reflection.",
   },
+  ptdsPanel: {
+    leftRail: "PTDS setup & data",
+    rightRail: "Audit & ledger",
+    collapseLeft: "Collapse left panel",
+    expandLeft: "Expand left panel",
+    collapseRight: "Collapse right panel",
+    expandRight: "Expand right panel",
+  },
   skillWorkshop: {
     header: {
       useCurrentChat: "Use current chat",

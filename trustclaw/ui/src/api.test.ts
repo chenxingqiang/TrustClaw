@@ -1,9 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   buildBrowseUrl,
+  buildControlUiChatSrc,
   callJson,
   createApiClient,
   isAgentChatError,
+  resolveApiBaseUrl,
+  resolveGatewayControlUiOrigin,
   type AgentChatResponse,
 } from "./api.js";
 
@@ -20,6 +23,29 @@ describe("trustclaw/ui api client", () => {
   it("buildBrowseUrl omits limit when undefined or non-finite", () => {
     expect(buildBrowseUrl("http://x", "t")).toBe("/api/ptds/browse?table=t");
     expect(buildBrowseUrl("http://x", "t", Number.NaN)).toBe("/api/ptds/browse?table=t");
+  });
+
+  it("resolveApiBaseUrl prefers VITE_GATEWAY_URL override", () => {
+    expect(resolveApiBaseUrl({ VITE_GATEWAY_URL: "http://gw/" }, { origin: "http://x" })).toBe(
+      "http://gw",
+    );
+    expect(resolveApiBaseUrl(undefined, { origin: "http://x" })).toBe("");
+  });
+
+  it("resolveGatewayControlUiOrigin and buildControlUiChatSrc target gateway chat", () => {
+    expect(
+      resolveGatewayControlUiOrigin({ VITE_GATEWAY_URL: "http://gw/" }, { origin: "http://x" }),
+    ).toBe("http://gw");
+    expect(buildControlUiChatSrc(undefined, { origin: "http://ui" })).toBe("http://ui/chat");
+    expect(
+      buildControlUiChatSrc({ VITE_GATEWAY_URL: "http://gw" }, { origin: "http://ui" }, "/ui"),
+    ).toBe("http://gw/ui/chat");
+  });
+
+  it("callJson uses relative path when baseUrl is empty", async () => {
+    const fetchImpl = vi.fn(async () => new Response(JSON.stringify({ ok: 1 }), { status: 200 }));
+    await callJson(fetchImpl as unknown as typeof fetch, "", "/api/ptds/status");
+    expect(fetchImpl.mock.calls[0]![0]).toBe("/api/ptds/status");
   });
 
   it("callJson posts JSON with content-type header and parses response", async () => {

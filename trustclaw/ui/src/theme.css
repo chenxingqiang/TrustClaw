@@ -58,6 +58,13 @@
   --danger-subtle: rgba(239, 68, 68, 0.08);
   --info: #3b82f6;
 
+  /* PTDS console panel accents (mockup A–E) */
+  --panel-a: #3b82f6;
+  --panel-b: #22c55e;
+  --panel-c: #8b5cf6;
+  --panel-d: #f59e0b;
+  --panel-e: #14b8a6;
+
   /* Focus */
   --focus: rgba(255, 92, 92, 0.2);
 

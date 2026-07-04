@@ -4,7 +4,8 @@ import type { UserConfig } from "vite";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const outDir = path.resolve(here, "dist");
-const gatewayPort = process.env.OPENCLAW_GATEWAY_PORT ?? process.env.TRUSTCLAW_GATEWAY_PORT ?? "18789";
+const gatewayPort =
+  process.env.OPENCLAW_GATEWAY_PORT ?? process.env.TRUSTCLAW_GATEWAY_PORT ?? "18789";
 const gatewayTarget = `http://127.0.0.1:${gatewayPort}`;
 
 export default function trustclawUiViteConfig(): UserConfig {
@@ -25,6 +26,9 @@ export default function trustclawUiViteConfig(): UserConfig {
           changeOrigin: true,
         },
       },
+    },
+    define: {
+      "import.meta.env.VITE_GATEWAY_URL": JSON.stringify(gatewayTarget),
     },
     preview: {
       port: Number(process.env.TRUSTCLAW_UI_PORT ?? "5174"),

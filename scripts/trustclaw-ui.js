@@ -109,13 +109,15 @@ function depsInstalled(kind) {
 }
 
 function resolveViteBin() {
-  const fromUi = path.join(repoRoot, "ui", "node_modules", "vite", "bin", "vite.js");
-  if (fs.existsSync(fromUi)) {
-    return fromUi;
-  }
-  const fromTrustclawUi = path.join(uiDir, "node_modules", "vite", "bin", "vite.js");
-  if (fs.existsSync(fromTrustclawUi)) {
-    return fromTrustclawUi;
+  const candidates = [
+    path.join(repoRoot, "ui", "node_modules", "vite", "bin", "vite.js"),
+    path.join(uiDir, "node_modules", "vite", "bin", "vite.js"),
+    path.join(repoRoot, "node_modules", "vite", "bin", "vite.js"),
+  ];
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
   }
   throw new Error("vite not found; run pnpm install in repo root (ui package provides vite).");
 }

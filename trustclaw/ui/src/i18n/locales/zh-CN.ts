@@ -14,6 +14,10 @@ export const zh_CN: TrustclawMessages = {
     language: "语言",
     langEn: "English",
     langZh: "中文",
+    chatFrameTitle: "OpenClaw 对话",
+    chatInControlUiTitle: "OpenClaw 对话",
+    chatInControlUiBody:
+      "由 Control UI 嵌入。推荐在 Gateway Control UI 的 PTDS 控制台标签页使用原生 Chat 工作台与可收起侧栏。",
   },
   panels: {
     landing: {
@@ -36,6 +40,7 @@ export const zh_CN: TrustclawMessages = {
     browser: {
       title: "B · 个人数据空间 (PTDS) 状态浏览器",
       mountNote: "当前 SQLite 数据库文件状态：",
+      viewerLabel: "数据查看器",
       mounted: "已挂载",
       notMounted: "未挂载",
       unknown: "未知",
@@ -48,12 +53,15 @@ export const zh_CN: TrustclawMessages = {
     },
     chat: {
       title: "C · 可信问答交互区",
-      placeholder: "我可以用司美格鲁肽吗？",
+      placeholder: "请输入您的问题…",
       send: "发送",
+      userLabel: "用户",
+      assistantLabel: "AI",
       noResponse: "（无回复）",
     },
     audit: {
       title: "D · 运行时审计面板",
+      stepUser: "0 · 用户输入",
       stepText2sql: "1 · Text2SQL",
       stepQuery: "2 · PTDS 查询",
       stepRules: "3 · 规则校验",
@@ -64,6 +72,11 @@ export const zh_CN: TrustclawMessages = {
     ledger: {
       title: "E · 凭证账本面板",
       placeholder: "占位 (Task 401)",
+      blockHeight: "账本高度",
+      rootHash: "根哈希",
+      proofLabel: "凭证证明",
+      copyProof: "复制",
+      copiedProof: "已复制",
     },
   },
 };

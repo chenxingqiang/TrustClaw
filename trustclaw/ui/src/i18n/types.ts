@@ -14,6 +14,9 @@ export type TrustclawMessages = {
     language: string;
     langEn: string;
     langZh: string;
+    chatFrameTitle: string;
+    chatInControlUiTitle: string;
+    chatInControlUiBody: string;
   };
   panels: {
     landing: {
@@ -36,6 +39,7 @@ export type TrustclawMessages = {
     browser: {
       title: string;
       mountNote: string;
+      viewerLabel: string;
       mounted: string;
       notMounted: string;
       unknown: string;
@@ -50,10 +54,13 @@ export type TrustclawMessages = {
       title: string;
       placeholder: string;
       send: string;
+      userLabel: string;
+      assistantLabel: string;
       noResponse: string;
     };
     audit: {
       title: string;
+      stepUser: string;
       stepText2sql: string;
       stepQuery: string;
       stepRules: string;
@@ -64,6 +71,11 @@ export type TrustclawMessages = {
     ledger: {
       title: string;
       placeholder: string;
+      blockHeight: string;
+      rootHash: string;
+      proofLabel: string;
+      copyProof: string;
+      copiedProof: string;
     };
   };
 };

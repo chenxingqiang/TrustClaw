@@ -1,75 +1,101 @@
-// TrustClaw demo SPA entry — PTDS Runtime Console with OpenClaw-compatible i18n.
+// TrustClaw PTDS side panels — center chat uses OpenClaw Control UI (iframe or native in workbench).
 
 import "./styles.css";
-import { createApiClient } from "./api.js";
-import { i18n, msg, type TrustclawLocale } from "./i18n/index.js";
+import { buildControlUiChatSrc, createApiClient, resolveApiBaseUrl } from "./api.js";
+import { i18n, msg } from "./i18n/index.js";
 import { renderAudit } from "./panels/audit.js";
 import { renderBrowser } from "./panels/browser.js";
-import { renderChat } from "./panels/chat.js";
 import { renderLanding } from "./panels/landing.js";
 import { renderLedger } from "./panels/ledger.js";
 
-const gatewayUrl =
-  (import.meta as ImportMeta & { env?: { VITE_GATEWAY_URL?: string } }).env?.VITE_GATEWAY_URL ??
-  window.location.origin;
-
-const client = createApiClient(gatewayUrl);
+const env = (import.meta as ImportMeta & { env?: { VITE_GATEWAY_URL?: string } }).env;
+const client = createApiClient(resolveApiBaseUrl(env, window.location));
 
 const app = document.getElementById("app");
 if (!app) {
   throw new Error("Missing #app root");
 }
 
+type EmbedMode = "left" | "right" | "full";
+
+function resolveEmbedMode(): EmbedMode {
+  const raw = new URLSearchParams(window.location.search).get("embed");
+  if (raw === "left" || raw === "right") {
+    return raw;
+  }
+  return "full";
+}
+
 let setSystemStatus: (running: boolean, detail?: string) => void = () => {};
 
-function mountApp(): void {
+function mountEmbed(mode: EmbedMode): void {
   app!.innerHTML = "";
+  app!.className = `embed embed--${mode}`;
+
+  if (mode === "left") {
+    const col = document.createElement("div");
+    col.className = "embed-column";
+    app!.append(col);
+    const landing = document.createElement("div");
+    const browser = document.createElement("div");
+    col.append(landing, browser);
+    const browserPanel = renderBrowser(browser, client);
+    renderLanding(landing, client, {
+      onInitialized: () => void browserPanel.refresh(),
+      onReset: () => void browserPanel.refresh(),
+    });
+    return;
+  }
+
+  if (mode === "right") {
+    const col = document.createElement("div");
+    col.className = "embed-column";
+    app!.append(col);
+    const audit = document.createElement("div");
+    const ledger = document.createElement("div");
+    col.append(audit, ledger);
+    renderAudit(audit);
+    renderLedger(ledger);
+    return;
+  }
+
+  mountFullConsole();
+}
+
+function mountFullConsole(): void {
+  app!.innerHTML = "";
+  app!.className = "console-app";
   const m = msg();
 
   const topbar = document.createElement("header");
   topbar.className = "topbar";
   topbar.innerHTML = `
-    <div class="topbar__title">
-      <span data-i18n="console.title">${escapeHtml(m.console.title)}</span>
-      <span class="topbar__badge">${escapeHtml(m.console.badge)}</span>
+    <div class="topbar__brand">
+      <span class="topbar__icon" aria-hidden="true">🛡</span>
+      <div class="topbar__title">
+        <span>${escapeHtml(m.console.title)}</span>
+        <span class="topbar__badge">${escapeHtml(m.console.badge)}</span>
+      </div>
     </div>
-    <div class="topbar__status">
+    <div class="topbar__status-pill" data-testid="system-status-wrap">
       <span class="status-dot" data-testid="system-status-dot"></span>
       <span data-testid="system-status-text">${escapeHtml(m.console.systemStatus)}：${escapeHtml(m.console.statusChecking)}</span>
-    </div>
-    <div class="topbar__actions">
-      <label class="lang-switch">
-        <span>${escapeHtml(m.console.language)}</span>
-        <select data-action="locale" aria-label="${escapeHtml(m.console.language)}">
-          <option value="en">${escapeHtml(m.console.langEn)}</option>
-          <option value="zh-CN">${escapeHtml(m.console.langZh)}</option>
-        </select>
-      </label>
-      <button type="button" data-action="theme">${escapeHtml(m.console.toggleTheme)}</button>
     </div>
   `;
   app!.append(topbar);
 
   const statusDot = topbar.querySelector<HTMLElement>('[data-testid="system-status-dot"]')!;
+  const statusWrap = topbar.querySelector<HTMLElement>('[data-testid="system-status-wrap"]')!;
   const statusText = topbar.querySelector<HTMLElement>('[data-testid="system-status-text"]')!;
   setSystemStatus = (running, detail) => {
     const label = running ? m.console.statusRunning : (detail ?? m.console.statusNotReady);
     statusDot.classList.toggle("status-dot--ok", running);
+    statusWrap.classList.toggle("topbar__status-pill--ok", running);
     statusText.textContent = `${m.console.systemStatus}：${label}`;
   };
 
-  const localeSelect = topbar.querySelector<HTMLSelectElement>('[data-action="locale"]')!;
-  localeSelect.value = i18n.getLocale();
-  localeSelect.addEventListener("change", () => {
-    i18n.setLocale(localeSelect.value as TrustclawLocale);
-  });
-
-  topbar
-    .querySelector<HTMLButtonElement>('[data-action="theme"]')
-    ?.addEventListener("click", () => {
-      document.documentElement.classList.toggle("theme-claw-light");
-    });
-
+  const shell = document.createElement("div");
+  shell.className = "console-shell";
   const layout = document.createElement("div");
   layout.className = "console-layout";
   layout.innerHTML = `
@@ -77,7 +103,8 @@ function mountApp(): void {
     <div class="console-column console-column--center"></div>
     <div class="console-column console-column--right"></div>
   `;
-  app!.append(layout);
+  shell.append(layout);
+  app!.append(shell);
 
   const leftCol = layout.querySelector<HTMLElement>(".console-column--left")!;
   const centerCol = layout.querySelector<HTMLElement>(".console-column--center")!;
@@ -85,23 +112,32 @@ function mountApp(): void {
 
   const landingSection = document.createElement("div");
   const browserSection = document.createElement("div");
-  const chatSection = document.createElement("div");
   const auditSection = document.createElement("div");
   const ledgerSection = document.createElement("div");
   leftCol.append(landingSection, browserSection);
-  centerCol.append(chatSection);
   rightCol.append(auditSection, ledgerSection);
 
-  const browser = renderBrowser(browserSection, client);
-  const audit = renderAudit(auditSection);
-  const ledger = renderLedger(ledgerSection);
+  const chatPanel = document.createElement("section");
+  chatPanel.className = "panel panel--chat-embed";
+  chatPanel.innerHTML = `
+    <header class="panel__header panel--c">
+      <h2>${escapeHtml(m.panels.chat.title)}</h2>
+    </header>
+  `;
+  const chatBody = document.createElement("div");
+  chatBody.className = "panel__body panel__body--chat-embed";
+  const chatFrame = document.createElement("iframe");
+  chatFrame.className = "console-chat-frame";
+  chatFrame.src = buildControlUiChatSrc(env, window.location);
+  chatFrame.title = m.console.chatFrameTitle;
+  chatFrame.loading = "lazy";
+  chatBody.append(chatFrame);
+  chatPanel.append(chatBody);
+  centerCol.append(chatPanel);
 
-  renderChat(chatSection, client, {
-    onRuntimeContext(context) {
-      audit.render(context);
-      ledger.append(context);
-    },
-  });
+  const browser = renderBrowser(browserSection, client);
+  renderAudit(auditSection);
+  renderLedger(ledgerSection);
 
   renderLanding(landingSection, client, {
     onInitialized() {
@@ -109,8 +145,6 @@ function mountApp(): void {
       setSystemStatus(true);
     },
     onReset() {
-      audit.clear();
-      ledger.clear();
       void browser.refresh();
       setSystemStatus(false, m.console.statusReset);
     },
@@ -127,6 +161,10 @@ function escapeHtml(input: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function mountApp(): void {
+  mountEmbed(resolveEmbedMode());
 }
 
 mountApp();

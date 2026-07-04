@@ -1,6 +1,8 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { z } from "zod";
 import {
+  buildPtdsHealthProfileSummary,
+  clearPtdsDataAccessGrants,
   initializePtds,
   listPtdsTables,
   queryPtds,
@@ -12,13 +14,26 @@ import { methodIs, readJsonBody, sendJson } from "./http-utils.js";
 
 const initRequestSchema = z
   .object({
+    patientName: z.string().trim().min(1).optional(),
+    gender: z.enum(["男", "女"]),
+    age: z.number().int().min(1).max(120),
     weight: z.number().finite().positive(),
     height: z.number().finite().positive(),
+    bmi: z.number().finite().positive().optional(),
     hba1c: z.number().finite().nonnegative(),
-    thyroid_cancer_history: z.union([z.literal(0), z.literal(1)]),
-    pancreatitis_history: z.union([z.literal(0), z.literal(1)]),
-    name: z.string().trim().min(1).optional(),
-    include_t2dm_diagnosis: z.boolean().optional(),
+    isPregnantOrLactating: z.boolean(),
+    hasType2Diabetes: z.boolean(),
+    thyroidHistory: z.boolean(),
+    pancreatitisHistory: z.boolean(),
+    cardiovascularRisk: z.boolean(),
+    gastrointestinalSensitivity: z.boolean(),
+    hasArteriosclerosis: z.boolean(),
+    hasCoronaryHeartDisease: z.boolean(),
+    hasMyocardialInfarction: z.boolean(),
+    hasStroke: z.boolean(),
+    usedMetforminBadControl: z.boolean(),
+    usedSulfonylureaBadControl: z.boolean(),
+    usedInsulinBadControl: z.boolean(),
   })
   .strict();
 
@@ -26,6 +41,8 @@ const initRequestSchema = z
 export const PTDS_BROWSER_TABLES = [
   "body_anthropometrics",
   "lab_test_results",
+  "medication_compliance_ast_rules",
+  "medication_compliance_standards",
   "nrdl_payment_rules",
   "v_glp1_nrdl_check_snapshot",
 ] as const;
@@ -57,7 +74,11 @@ export function createPtdsInitHandler(pluginConfig: TrustclawPluginConfig | unde
     const paths = pathOverrides(pluginConfig);
     const result = initializePtds(body.data, { dbPath: paths.dbPath });
     const status = result.status === "success" ? 200 : 500;
-    sendJson(res, status, result);
+    const profileSummary =
+      result.status === "success"
+        ? buildPtdsHealthProfileSummary({ dbPath: paths.dbPath })
+        : undefined;
+    sendJson(res, status, profileSummary ? { ...result, profile_summary: profileSummary } : result);
     return true;
   };
 }
@@ -70,6 +91,9 @@ export function createPtdsResetHandler(pluginConfig: TrustclawPluginConfig | und
     }
     const paths = pathOverrides(pluginConfig);
     const result = resetPtds({ dbPath: paths.dbPath });
+    if (result.status === "success") {
+      clearPtdsDataAccessGrants({ dbPath: paths.dbPath, auditDir: paths.auditDir });
+    }
     sendJson(res, result.status === "success" ? 200 : 500, result);
     return true;
   };
@@ -88,6 +112,23 @@ export function createPtdsStatusHandler(pluginConfig: TrustclawPluginConfig | un
       mounted: snapshot !== null,
       db_file: paths.dbPath,
       snapshot,
+    });
+    return true;
+  };
+}
+
+export function createPtdsProfileSummaryHandler(pluginConfig: TrustclawPluginConfig | undefined) {
+  return async (req: IncomingMessage, res: ServerResponse): Promise<boolean> => {
+    if (!methodIs(req, "GET")) {
+      sendJson(res, 405, { status: "error", message: "Method not allowed." });
+      return true;
+    }
+    const paths = pathOverrides(pluginConfig);
+    const profile = buildPtdsHealthProfileSummary({ dbPath: paths.dbPath });
+    sendJson(res, 200, {
+      status: "success",
+      mounted: profile.mounted,
+      profile,
     });
     return true;
   };

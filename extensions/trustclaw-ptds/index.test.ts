@@ -9,6 +9,28 @@ import manifest from "./openclaw.plugin.json" with { type: "json" };
 import { createAgentChatHandler } from "./src/agent-routes.js";
 import { createPtdsInitHandler } from "./src/ptds-routes.js";
 
+const sampleInitPayload = {
+  patientName: "张三",
+  gender: "男",
+  age: 45,
+  weight: 85,
+  height: 170,
+  hba1c: 6.8,
+  isPregnantOrLactating: false,
+  hasType2Diabetes: true,
+  thyroidHistory: false,
+  pancreatitisHistory: false,
+  cardiovascularRisk: false,
+  gastrointestinalSensitivity: false,
+  hasArteriosclerosis: false,
+  hasCoronaryHeartDisease: false,
+  hasMyocardialInfarction: false,
+  hasStroke: false,
+  usedMetforminBadControl: false,
+  usedSulfonylureaBadControl: false,
+  usedInsulinBadControl: false,
+};
+
 function createMockResponse(): ServerResponse & { getBody: () => string } {
   const state = { statusCode: 200, body: "" };
   const res = {
@@ -54,16 +76,67 @@ describe("trustclaw-ptds plugin", () => {
       "/api/ptds/init",
       "/api/ptds/reset",
       "/api/ptds/status",
+      "/api/ptds/compliance/preview",
+      "/api/ptds/compliance/import",
+      "/api/ptds/compliance/import/bundled-glp1-v2",
+      "/api/ptds/compliance/standards",
+      "/api/ptds/compliance/rules",
+      "/api/ptds/reference/preview",
+      "/api/ptds/reference/sync",
+      "/api/ptds/reference/status",
+      "/api/ptds/reference/sync/bundled-glp1",
+      "/api/ptds/device/preview",
+      "/api/ptds/device/import",
+      "/api/ptds/profile-summary",
+      "/api/ptds/audit/events",
       "/api/ptds/tables",
       "/api/ptds/browse",
       "/api/agent/chat",
       "/trustclaw",
     ]);
     expect(routes.every((route) => route.auth === "plugin")).toBe(true);
-    expect(routes.filter((route) => route.match === "exact").length).toBe(6);
+    expect(routes.filter((route) => route.match === "exact").length).toBe(19);
     expect(routes.find((route) => route.path === "/trustclaw")?.match).toBe("prefix");
-    expect(registerTool).toHaveBeenCalledTimes(1);
+    expect(registerTool).toHaveBeenCalledTimes(2);
     expect(on).toHaveBeenCalledWith("before_prompt_build", expect.any(Function));
+    expect(on).toHaveBeenCalledWith("before_tool_call", expect.any(Function));
+  });
+
+  it("before_prompt_build injects mounted profile context when PTDS has data", async () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "trustclaw-plugin-guidance-"));
+    const dbPath = path.join(dir, "local_ptds.db");
+    try {
+      const initHandler = createPtdsInitHandler({ dbPath });
+      const initReq = {
+        method: "POST",
+        async *[Symbol.asyncIterator]() {
+          yield JSON.stringify(sampleInitPayload);
+        },
+      } as IncomingMessage;
+      const initRes = createMockResponse();
+      await initHandler(initReq, initRes);
+
+      let beforePromptBuild:
+        | ((event: { messages: unknown[] }) => Promise<{ prependContext?: string }>)
+        | undefined;
+      plugin.register({
+        registerHttpRoute() {},
+        registerTool() {},
+        on(event, handler) {
+          if (event === "before_prompt_build") {
+            beforePromptBuild = handler as typeof beforePromptBuild;
+          }
+        },
+        pluginConfig: { dbPath },
+        logger: { info: vi.fn() },
+      } as Parameters<typeof plugin.register>[0]);
+
+      const result = await beforePromptBuild!({ messages: [] });
+      expect(result.prependContext).toContain("Mounted PTDS profile");
+      expect(result.prependContext).toContain("PTDS profile briefing");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it("before_prompt_build injects C3-PO PTDS system context", async () => {
@@ -84,6 +157,8 @@ describe("trustclaw-ptds plugin", () => {
     const result = await beforePromptBuild!();
     expect(result.prependSystemContext).toContain("C3-PO");
     expect(result.prependSystemContext).toContain("trustclaw_ptds_query");
+    expect(result.prependSystemContext).toContain("trustclaw_ptds_write");
+    expect(result.prependSystemContext).toMatch(/consent approval/i);
     expect(result.prependSystemContext).toMatch(/not.*Claude Code/i);
   });
 
@@ -95,14 +170,7 @@ describe("trustclaw-ptds plugin", () => {
       const req = {
         method: "POST",
         async *[Symbol.asyncIterator]() {
-          yield JSON.stringify({
-            weight: 85,
-            height: 170,
-            hba1c: 6.8,
-            thyroid_cancer_history: 0,
-            pancreatitis_history: 0,
-            include_t2dm_diagnosis: true,
-          });
+          yield JSON.stringify(sampleInitPayload);
         },
       } as IncomingMessage;
       const res = createMockResponse();
@@ -130,14 +198,7 @@ describe("trustclaw-ptds plugin", () => {
       const initReq = {
         method: "POST",
         async *[Symbol.asyncIterator]() {
-          yield JSON.stringify({
-            weight: 85,
-            height: 170,
-            hba1c: 6.8,
-            thyroid_cancer_history: 0,
-            pancreatitis_history: 0,
-            include_t2dm_diagnosis: true,
-          });
+          yield JSON.stringify(sampleInitPayload);
         },
       } as IncomingMessage;
       const initRes = createMockResponse();

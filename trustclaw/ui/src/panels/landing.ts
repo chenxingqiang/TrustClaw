@@ -1,11 +1,21 @@
 // Panel A — Landing & PTDS Init.
 
-import type { PtdsInitRequest, TrustclawApiClient } from "../api.js";
+import {
+  computePtdsBmi,
+  type PtdsInitRequest,
+  PTDS_INIT_FORM_DEFAULTS,
+  type TrustclawApiClient,
+} from "../api.js";
 import { msg } from "../i18n/index.js";
 
 export interface LandingHandlers {
   onInitialized(): void;
   onReset(): void;
+}
+
+function checkboxField(name: keyof PtdsInitRequest, label: string, checked = false): string {
+  const checkedAttr = checked ? " checked" : "";
+  return `<label class="init-form__check"><input name="${name}" type="checkbox"${checkedAttr} /> ${escapeHtml(label)}</label>`;
 }
 
 export function renderLanding(
@@ -14,6 +24,7 @@ export function renderLanding(
   handlers: LandingHandlers,
 ): void {
   const m = msg().panels.landing;
+  const d = PTDS_INIT_FORM_DEFAULTS;
   root.innerHTML = `
     <section class="panel panel--a" data-panel="landing">
       <header class="panel__header">
@@ -22,17 +33,62 @@ export function renderLanding(
       </header>
       <div class="panel__body">
         <form class="init-form" data-testid="init-form">
-          <div class="init-form__grid">
-            <label>${escapeHtml(m.name)} <input name="name" type="text" value="张三" /></label>
-            <label>${escapeHtml(m.weight)} <input name="weight" type="number" step="0.1" value="82" required /></label>
-            <label>${escapeHtml(m.height)} <input name="height" type="number" step="0.1" value="170" required /></label>
-            <label>${escapeHtml(m.hba1c)} <input name="hba1c" type="number" step="0.1" value="6.8" required /></label>
-          </div>
           <fieldset class="history-fieldset">
-            <legend>${escapeHtml(m.historyLegend)}</legend>
-            <label><input name="thyroid_cancer_history" type="checkbox" /> ${escapeHtml(m.thyroid)}</label>
-            <label><input name="pancreatitis_history" type="checkbox" /> ${escapeHtml(m.pancreatitis)}</label>
-            <label><input name="include_t2dm_diagnosis" type="checkbox" checked /> ${escapeHtml(m.t2dm)}</label>
+            <legend>${escapeHtml(m.sectionBasic)}</legend>
+            <div class="init-form__grid">
+              <label>${escapeHtml(m.patientName)}
+                <input name="patientName" type="text" value="${escapeHtml(d.patientName)}" required />
+              </label>
+              <label>${escapeHtml(m.gender)}
+                <select name="gender" required>
+                  <option value="男"${d.gender === "男" ? " selected" : ""}>${escapeHtml(m.genderMale)}</option>
+                  <option value="女"${d.gender === "女" ? " selected" : ""}>${escapeHtml(m.genderFemale)}</option>
+                </select>
+              </label>
+              <label>${escapeHtml(m.age)}
+                <input name="age" type="number" step="1" min="1" max="120" value="${d.age}" required />
+              </label>
+              <label>${escapeHtml(m.weight)}
+                <input name="weight" type="number" step="0.1" value="${d.weight}" required data-bmi-input />
+              </label>
+              <label>${escapeHtml(m.height)}
+                <input name="height" type="number" step="0.1" value="${d.height}" required data-bmi-input />
+              </label>
+              <label>${escapeHtml(m.bmi)}
+                <input name="bmi" type="text" readonly data-testid="bmi-display" value="${computePtdsBmi(d.weight, d.height).toFixed(1)}" />
+              </label>
+              <label>${escapeHtml(m.hba1c)}
+                <input name="hba1c" type="number" step="0.1" value="${d.hba1c}" required />
+              </label>
+            </div>
+          </fieldset>
+          <fieldset class="history-fieldset">
+            <legend>${escapeHtml(m.sectionHighRisk)}</legend>
+            <div class="init-form__checks">
+              ${checkboxField("isPregnantOrLactating", m.isPregnantOrLactating, d.isPregnantOrLactating)}
+              ${checkboxField("hasType2Diabetes", m.hasType2Diabetes, d.hasType2Diabetes)}
+              ${checkboxField("thyroidHistory", m.thyroidHistory, d.thyroidHistory)}
+              ${checkboxField("pancreatitisHistory", m.pancreatitisHistory, d.pancreatitisHistory)}
+              ${checkboxField("cardiovascularRisk", m.cardiovascularRisk, d.cardiovascularRisk)}
+              ${checkboxField("gastrointestinalSensitivity", m.gastrointestinalSensitivity, d.gastrointestinalSensitivity)}
+            </div>
+          </fieldset>
+          <fieldset class="history-fieldset">
+            <legend>${escapeHtml(m.sectionComorbid)}</legend>
+            <div class="init-form__checks">
+              ${checkboxField("hasArteriosclerosis", m.hasArteriosclerosis, d.hasArteriosclerosis)}
+              ${checkboxField("hasCoronaryHeartDisease", m.hasCoronaryHeartDisease, d.hasCoronaryHeartDisease)}
+              ${checkboxField("hasMyocardialInfarction", m.hasMyocardialInfarction, d.hasMyocardialInfarction)}
+              ${checkboxField("hasStroke", m.hasStroke, d.hasStroke)}
+            </div>
+          </fieldset>
+          <fieldset class="history-fieldset">
+            <legend>${escapeHtml(m.sectionMedHistory)}</legend>
+            <div class="init-form__checks">
+              ${checkboxField("usedMetforminBadControl", m.usedMetforminBadControl, d.usedMetforminBadControl)}
+              ${checkboxField("usedSulfonylureaBadControl", m.usedSulfonylureaBadControl, d.usedSulfonylureaBadControl)}
+              ${checkboxField("usedInsulinBadControl", m.usedInsulinBadControl, d.usedInsulinBadControl)}
+            </div>
           </fieldset>
           <div class="actions">
             <button type="submit" class="btn-primary">${escapeHtml(m.initBtn)}</button>
@@ -48,6 +104,21 @@ export function renderLanding(
   const resultEl = root.querySelector<HTMLElement>('[data-testid="landing-result"]')!;
   const form = root.querySelector<HTMLFormElement>('[data-testid="init-form"]')!;
   const resetBtn = root.querySelector<HTMLButtonElement>('[data-action="reset"]')!;
+  const bmiDisplay = root.querySelector<HTMLInputElement>('[data-testid="bmi-display"]')!;
+
+  function refreshBmi(): void {
+    const weightEl = form.elements.namedItem("weight") as HTMLInputElement;
+    const heightEl = form.elements.namedItem("height") as HTMLInputElement;
+    const w = Number(weightEl.value);
+    const h = Number(heightEl.value);
+    if (Number.isFinite(w) && Number.isFinite(h) && h > 0) {
+      bmiDisplay.value = computePtdsBmi(w, h).toFixed(1);
+    }
+  }
+
+  for (const input of form.querySelectorAll<HTMLInputElement>("[data-bmi-input]")) {
+    input.addEventListener("input", refreshBmi);
+  }
 
   function setMounted(mounted: boolean): void {
     statusEl.textContent = mounted ? m.mounted : m.notMounted;
@@ -65,17 +136,27 @@ export function renderLanding(
     event.preventDefault();
     const data = new FormData(form);
     const body: PtdsInitRequest = {
+      patientName: String(data.get("patientName") ?? d.patientName).trim(),
+      gender: String(data.get("gender")) === "女" ? "女" : "男",
+      age: Number(data.get("age")),
       weight: Number(data.get("weight")),
       height: Number(data.get("height")),
+      bmi: Number(bmiDisplay.value),
       hba1c: Number(data.get("hba1c")),
-      thyroid_cancer_history: data.get("thyroid_cancer_history") ? 1 : 0,
-      pancreatitis_history: data.get("pancreatitis_history") ? 1 : 0,
-      include_t2dm_diagnosis: Boolean(data.get("include_t2dm_diagnosis")),
+      isPregnantOrLactating: Boolean(data.get("isPregnantOrLactating")),
+      hasType2Diabetes: Boolean(data.get("hasType2Diabetes")),
+      thyroidHistory: Boolean(data.get("thyroidHistory")),
+      pancreatitisHistory: Boolean(data.get("pancreatitisHistory")),
+      cardiovascularRisk: Boolean(data.get("cardiovascularRisk")),
+      gastrointestinalSensitivity: Boolean(data.get("gastrointestinalSensitivity")),
+      hasArteriosclerosis: Boolean(data.get("hasArteriosclerosis")),
+      hasCoronaryHeartDisease: Boolean(data.get("hasCoronaryHeartDisease")),
+      hasMyocardialInfarction: Boolean(data.get("hasMyocardialInfarction")),
+      hasStroke: Boolean(data.get("hasStroke")),
+      usedMetforminBadControl: Boolean(data.get("usedMetforminBadControl")),
+      usedSulfonylureaBadControl: Boolean(data.get("usedSulfonylureaBadControl")),
+      usedInsulinBadControl: Boolean(data.get("usedInsulinBadControl")),
     };
-    const name = String(data.get("name") ?? "").trim();
-    if (name) {
-      body.name = name;
-    }
     resultEl.textContent = m.mounting;
     try {
       const response = await client.init(body);
@@ -83,8 +164,12 @@ export function renderLanding(
       if (response.status === "success") {
         setMounted(true);
         handlers.onInitialized();
+      } else {
+        setMounted(false);
+        resultEl.textContent = `${m.initFailed}: ${response.message}\n${resultEl.textContent}`;
       }
     } catch (error) {
+      setMounted(false);
       resultEl.textContent = `${msg().panels.browser.loadError}: ${(error as Error).message}`;
     }
   });

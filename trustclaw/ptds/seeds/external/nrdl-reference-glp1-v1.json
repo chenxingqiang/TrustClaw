@@ -1,0 +1,57 @@
+{
+  "$schema": "https://trustclaw.local/schemas/nrdl-reference/v1",
+  "metadata": {
+    "version_id": "nrdl_ref_glp1_v1",
+    "release_date": "2025-01-01",
+    "publisher": "NRDL Demo Registry",
+    "package_hash": "demo-glp1-reference-v1"
+  },
+  "drugs": [
+    {
+      "drug_id": "GLP1_SEMA",
+      "generic_name": "司美格鲁肽",
+      "active_ingredient": "semaglutide",
+      "atc_code": "A10BJ06",
+      "is_negotiated_drug": 1,
+      "agreement_expiry_date": "2026-12-31"
+    }
+  ],
+  "payment_rules": [
+    {
+      "rule_id": "GLP1_R01",
+      "drug_id": "GLP1_SEMA",
+      "rule_category": "DIAGNOSIS",
+      "target_key": "has_t2dm",
+      "comparison_operator": "==",
+      "comparison_value": "1",
+      "alert_message": "需确诊且处于活动期的2型糖尿病（ICD-10 E11）"
+    },
+    {
+      "rule_id": "GLP1_R02",
+      "drug_id": "GLP1_SEMA",
+      "rule_category": "LAB_LIMIT",
+      "target_key": "latest_hospital_hba1c",
+      "comparison_operator": ">=",
+      "comparison_value": "6.5",
+      "alert_message": "临床级HbA1c需≥6.5%"
+    },
+    {
+      "rule_id": "GLP1_R03",
+      "drug_id": "GLP1_SEMA",
+      "rule_category": "SAFETY_LIMIT",
+      "target_key": "has_absolute_contraindication",
+      "comparison_operator": "==",
+      "comparison_value": "0",
+      "alert_message": "存在甲状腺髓样癌或重度胰腺炎禁忌"
+    },
+    {
+      "rule_id": "GLP1_R04",
+      "drug_id": "GLP1_SEMA",
+      "rule_category": "PRIOR_MED",
+      "target_key": "prior_oral_therapy_status",
+      "comparison_operator": ">=",
+      "comparison_value": "1",
+      "alert_message": "需有口服降糖药阶梯治疗史且控制不佳"
+    }
+  ]
+}

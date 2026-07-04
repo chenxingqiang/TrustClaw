@@ -3,10 +3,13 @@
   "name": "TrustClaw PTDS",
   "description": "TrustClaw Personal Trusted Data Space HTTP APIs and runtime integration.",
   "contracts": {
-    "tools": ["trustclaw_ptds_query"]
+    "tools": ["trustclaw_ptds_query", "trustclaw_ptds_write"]
   },
   "toolMetadata": {
     "trustclaw_ptds_query": {
+      "optional": true
+    },
+    "trustclaw_ptds_write": {
       "optional": true
     }
   },

@@ -10,6 +10,7 @@ import {
 import { i18n, msg } from "./i18n/index.js";
 import { renderAudit } from "./panels/audit.js";
 import { renderBrowser } from "./panels/browser.js";
+import { renderCompliance } from "./panels/compliance.js";
 import { renderLanding } from "./panels/landing.js";
 import { renderLedger } from "./panels/ledger.js";
 import { bindTrustclawRuntimeContextListener } from "./runtime-bridge.js";
@@ -37,6 +38,34 @@ function resolveEmbedMode(): EmbedMode {
 
 let setSystemStatus: (running: boolean, detail?: string) => void = () => {};
 
+function mountRightRail(
+  col: HTMLElement,
+  options?: { onComplianceImported?: () => void },
+): void {
+  const audit = document.createElement("div");
+  const ledger = document.createElement("div");
+  const compliance = document.createElement("div");
+  col.append(audit, ledger, compliance);
+
+  const ledgerPanel = renderLedger(ledger, client);
+  const compliancePanel = renderCompliance(compliance, client, {
+    onImported: () => {
+      options?.onComplianceImported?.();
+      void auditPanel.refresh();
+      void ledgerPanel.refresh();
+    },
+  });
+  const auditPanel = renderAudit(audit, client, {
+    onLedgerHydrate: (receipts) => ledgerPanel.setReceipts(receipts),
+    onLedgerUpsert: (receipt) => ledgerPanel.upsertReceipt(receipt),
+  });
+  bindTrustclawRuntimeContextListener({
+    renderAudit: (context) => auditPanel.render(context),
+    appendLedger: (context) => ledgerPanel.append(context),
+  });
+  void ledgerPanel.refresh();
+}
+
 function mountEmbed(mode: EmbedMode): void {
   app!.innerHTML = "";
   app!.className = `embed embed--${mode}`;
@@ -60,15 +89,7 @@ function mountEmbed(mode: EmbedMode): void {
     const col = document.createElement("div");
     col.className = "embed-column";
     app!.append(col);
-    const audit = document.createElement("div");
-    const ledger = document.createElement("div");
-    col.append(audit, ledger);
-    const auditPanel = renderAudit(audit);
-    const ledgerPanel = renderLedger(ledger);
-    bindTrustclawRuntimeContextListener({
-      renderAudit: (context) => auditPanel.render(context),
-      appendLedger: (context) => ledgerPanel.append(context),
-    });
+    mountRightRail(col);
     return;
   }
 
@@ -125,10 +146,12 @@ function mountFullConsole(): void {
 
   const landingSection = document.createElement("div");
   const browserSection = document.createElement("div");
+  leftCol.append(landingSection, browserSection);
+
   const auditSection = document.createElement("div");
   const ledgerSection = document.createElement("div");
-  leftCol.append(landingSection, browserSection);
-  rightCol.append(auditSection, ledgerSection);
+  const complianceSection = document.createElement("div");
+  rightCol.append(auditSection, ledgerSection, complianceSection);
 
   const chatPanel = document.createElement("section");
   chatPanel.className = "panel panel--chat-embed";
@@ -149,23 +172,37 @@ function mountFullConsole(): void {
   centerCol.append(chatPanel);
 
   const browser = renderBrowser(browserSection, client);
-  const auditPanel = renderAudit(auditSection);
-  const ledgerPanel = renderLedger(ledgerSection);
+  const ledgerPanel = renderLedger(ledgerSection, client);
+  const auditPanel = renderAudit(auditSection, client, {
+    onLedgerHydrate: (receipts) => ledgerPanel.setReceipts(receipts),
+    onLedgerUpsert: (receipt) => ledgerPanel.upsertReceipt(receipt),
+  });
+  const compliancePanel = renderCompliance(complianceSection, client, {
+    onImported() {
+      void browser.refresh();
+      void auditPanel.refresh();
+      void ledgerPanel.refresh();
+    },
+  });
   bindTrustclawRuntimeContextListener({
     renderAudit: (context) => auditPanel.render(context),
     appendLedger: (context) => ledgerPanel.append(context),
     allowedOrigins: [window.location.origin, resolveGatewayControlUiOrigin(env, window.location)],
   });
+  void ledgerPanel.refresh();
 
   renderLanding(landingSection, client, {
     onInitialized() {
       void browser.refresh();
+      void compliancePanel.refresh();
       setSystemStatus(true);
     },
     onReset() {
       void browser.refresh();
+      void compliancePanel.refresh();
       setSystemStatus(false, m.console.statusReset);
       auditPanel.clear();
+      void auditPanel.refresh();
       ledgerPanel.clear();
     },
   });

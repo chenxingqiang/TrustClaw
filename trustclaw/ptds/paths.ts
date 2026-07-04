@@ -20,7 +20,23 @@ function resolveTrustclawRoot(moduleUrl: string = import.meta.url): string {
 const TRUSTCLAW_ROOT = resolveTrustclawRoot();
 
 export const PTDS_SCHEMA_V11_SQL = path.join(TRUSTCLAW_ROOT, "ptds/schema/v1.1.sql");
+export const PTDS_COMPLIANCE_STANDARDS_SQL = path.join(
+  TRUSTCLAW_ROOT,
+  "ptds/schema/compliance-standards.v1.sql",
+);
+export const PTDS_REFERENCE_SYNC_SQL = path.join(
+  TRUSTCLAW_ROOT,
+  "ptds/schema/reference-sync.v1.sql",
+);
 export const PTDS_SEED_NRDL_GLP1_SQL = path.join(TRUSTCLAW_ROOT, "ptds/seeds/nrdl-glp1-seed.sql");
+export const PTDS_SEED_GLP1_AST_V2_JSON = path.join(
+  TRUSTCLAW_ROOT,
+  "ptds/seeds/external/glp1-nrdl-ast-handshake-v2.json",
+);
+export const PTDS_SEED_NRDL_REFERENCE_GLP1_JSON = path.join(
+  TRUSTCLAW_ROOT,
+  "ptds/seeds/external/nrdl-reference-glp1-v1.json",
+);
 export const PTDS_TEMPLATE_DB = path.join(TRUSTCLAW_ROOT, "ptds/seeds/local_ptds.template.db");
 
 /** Mirrors OpenClaw `resolveOpenClawStateSqliteDir` without importing core. */

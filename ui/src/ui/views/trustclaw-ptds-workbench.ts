@@ -59,6 +59,86 @@ export type TrustclawPtdsWorkbenchParams = {
   chatContent: TemplateResult;
 };
 
+function renderRailHeader(params: {
+  side: "left" | "right";
+  open: boolean;
+  onToggle: () => void;
+  title: string;
+}): TemplateResult {
+  const collapseLabel =
+    params.side === "left" ? t("ptdsPanel.collapseLeft") : t("ptdsPanel.collapseRight");
+  const expandLabel =
+    params.side === "left" ? t("ptdsPanel.expandLeft") : t("ptdsPanel.expandRight");
+  if (params.open) {
+    if (params.side === "left") {
+      return html`<div class="trustclaw-ptds-rail__header">
+        <div class="trustclaw-ptds-rail__meta">
+          <span class="trustclaw-ptds-rail__eyebrow">PTDS</span>
+          <span class="trustclaw-ptds-rail__title">${params.title}</span>
+        </div>
+        <button
+          type="button"
+          class="btn btn--sm trustclaw-ptds-rail__toggle trustclaw-ptds-rail__toggle--collapse-left"
+          @click=${params.onToggle}
+          aria-label=${collapseLabel}
+          title=${collapseLabel}
+        >
+          ${icons.chevronRight}
+        </button>
+      </div>`;
+    }
+    return html`<div class="trustclaw-ptds-rail__header">
+      <button
+        type="button"
+        class="btn btn--sm trustclaw-ptds-rail__toggle"
+        @click=${params.onToggle}
+        aria-label=${collapseLabel}
+        title=${collapseLabel}
+      >
+        ${icons.chevronRight}
+      </button>
+      <div class="trustclaw-ptds-rail__meta trustclaw-ptds-rail__meta--right">
+        <span class="trustclaw-ptds-rail__eyebrow">PTDS</span>
+        <span class="trustclaw-ptds-rail__title">${params.title}</span>
+      </div>
+    </div>`;
+  }
+  return html`<div class="trustclaw-ptds-rail__header">
+    <button
+      type="button"
+      class="btn btn--sm trustclaw-ptds-rail__toggle"
+      @click=${params.onToggle}
+      aria-label=${expandLabel}
+      title=${expandLabel}
+    >
+      ${icons.chevronRight}
+    </button>
+  </div>`;
+}
+
+function renderRailFrame(params: {
+  src: string;
+  title: string;
+  locale: string;
+  themeResolved: string;
+  themeMode: "light" | "dark";
+}): TemplateResult {
+  return html`<iframe
+    class="trustclaw-ptds-rail__frame"
+    src=${params.src}
+    title=${params.title}
+    loading="lazy"
+    @load=${(event: Event) => {
+      syncIframeChrome(
+        event.currentTarget as HTMLIFrameElement,
+        params.locale,
+        params.themeResolved,
+        params.themeMode,
+      );
+    }}
+  ></iframe>`;
+}
+
 export function renderTrustclawPtdsWorkbench(params: TrustclawPtdsWorkbenchParams) {
   const locale = params.locale ?? "en";
   const themeResolved = params.themeResolved ?? "dark";
@@ -78,47 +158,19 @@ export function renderTrustclawPtdsWorkbench(params: TrustclawPtdsWorkbenchParam
           ? ""
           : "trustclaw-ptds-rail--collapsed"}"
       >
-        ${params.leftOpen
-          ? html`<div class="trustclaw-ptds-rail__header">
-                <div class="trustclaw-ptds-rail__meta">
-                  <span class="trustclaw-ptds-rail__eyebrow">PTDS</span>
-                  <span class="trustclaw-ptds-rail__title">${t("ptdsPanel.leftRail")}</span>
-                </div>
-                <button
-                  type="button"
-                  class="btn btn--sm trustclaw-ptds-rail__toggle trustclaw-ptds-rail__toggle--collapse-left"
-                  @click=${params.onToggleLeft}
-                  aria-label=${t("ptdsPanel.collapseLeft")}
-                  title=${t("ptdsPanel.collapseLeft")}
-                >
-                  ${icons.chevronRight}
-                </button>
-              </div>
-              <iframe
-                class="trustclaw-ptds-rail__frame"
-                src=${leftSrc}
-                title=${t("ptdsPanel.leftRail")}
-                loading="lazy"
-                @load=${(event: Event) => {
-                  syncIframeChrome(
-                    event.currentTarget as HTMLIFrameElement,
-                    locale,
-                    themeResolved,
-                    themeMode,
-                  );
-                }}
-              ></iframe>`
-          : html`<div class="trustclaw-ptds-rail__header">
-              <button
-                type="button"
-                class="btn btn--sm trustclaw-ptds-rail__toggle"
-                @click=${params.onToggleLeft}
-                aria-label=${t("ptdsPanel.expandLeft")}
-                title=${t("ptdsPanel.expandLeft")}
-              >
-                ${icons.chevronRight}
-              </button>
-            </div>`}
+        ${renderRailHeader({
+          side: "left",
+          open: params.leftOpen,
+          onToggle: params.onToggleLeft,
+          title: t("ptdsPanel.leftRail"),
+        })}
+        ${renderRailFrame({
+          src: leftSrc,
+          title: t("ptdsPanel.leftRail"),
+          locale,
+          themeResolved,
+          themeMode,
+        })}
       </aside>
 
       <div class="trustclaw-ptds-workbench__chat">${params.chatContent}</div>
@@ -128,47 +180,19 @@ export function renderTrustclawPtdsWorkbench(params: TrustclawPtdsWorkbenchParam
           ? ""
           : "trustclaw-ptds-rail--collapsed"}"
       >
-        ${params.rightOpen
-          ? html`<div class="trustclaw-ptds-rail__header">
-                <button
-                  type="button"
-                  class="btn btn--sm trustclaw-ptds-rail__toggle"
-                  @click=${params.onToggleRight}
-                  aria-label=${t("ptdsPanel.collapseRight")}
-                  title=${t("ptdsPanel.collapseRight")}
-                >
-                  ${icons.chevronRight}
-                </button>
-                <div class="trustclaw-ptds-rail__meta trustclaw-ptds-rail__meta--right">
-                  <span class="trustclaw-ptds-rail__eyebrow">PTDS</span>
-                  <span class="trustclaw-ptds-rail__title">${t("ptdsPanel.rightRail")}</span>
-                </div>
-              </div>
-              <iframe
-                class="trustclaw-ptds-rail__frame"
-                src=${rightSrc}
-                title=${t("ptdsPanel.rightRail")}
-                loading="lazy"
-                @load=${(event: Event) => {
-                  syncIframeChrome(
-                    event.currentTarget as HTMLIFrameElement,
-                    locale,
-                    themeResolved,
-                    themeMode,
-                  );
-                }}
-              ></iframe>`
-          : html`<div class="trustclaw-ptds-rail__header">
-              <button
-                type="button"
-                class="btn btn--sm trustclaw-ptds-rail__toggle"
-                @click=${params.onToggleRight}
-                aria-label=${t("ptdsPanel.expandRight")}
-                title=${t("ptdsPanel.expandRight")}
-              >
-                ${icons.chevronRight}
-              </button>
-            </div>`}
+        ${renderRailHeader({
+          side: "right",
+          open: params.rightOpen,
+          onToggle: params.onToggleRight,
+          title: t("ptdsPanel.rightRail"),
+        })}
+        ${renderRailFrame({
+          src: rightSrc,
+          title: t("ptdsPanel.rightRail"),
+          locale,
+          themeResolved,
+          themeMode,
+        })}
       </aside>
     </section>
   `;

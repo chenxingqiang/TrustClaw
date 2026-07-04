@@ -5,13 +5,56 @@
 
 /** Frozen `POST /api/ptds/init` request shape. */
 export interface PtdsInitRequest {
+  patientName?: string;
+  gender: "男" | "女";
+  age: number;
   weight: number;
   height: number;
+  bmi?: number;
   hba1c: number;
-  thyroid_cancer_history: 0 | 1;
-  pancreatitis_history: 0 | 1;
-  include_t2dm_diagnosis?: boolean;
-  name?: string;
+  isPregnantOrLactating: boolean;
+  hasType2Diabetes: boolean;
+  thyroidHistory: boolean;
+  pancreatitisHistory: boolean;
+  cardiovascularRisk: boolean;
+  gastrointestinalSensitivity: boolean;
+  hasArteriosclerosis: boolean;
+  hasCoronaryHeartDisease: boolean;
+  hasMyocardialInfarction: boolean;
+  hasStroke: boolean;
+  usedMetforminBadControl: boolean;
+  usedSulfonylureaBadControl: boolean;
+  usedInsulinBadControl: boolean;
+}
+
+export const PTDS_INIT_FORM_DEFAULTS: Required<
+  Pick<PtdsInitRequest, "patientName" | "gender" | "age">
+> &
+  Omit<PtdsInitRequest, "patientName" | "gender" | "age" | "bmi"> = {
+  patientName: "张三",
+  gender: "男",
+  age: 45,
+  weight: 82,
+  height: 170,
+  hba1c: 6.8,
+  isPregnantOrLactating: false,
+  hasType2Diabetes: true,
+  thyroidHistory: false,
+  pancreatitisHistory: false,
+  cardiovascularRisk: false,
+  gastrointestinalSensitivity: false,
+  hasArteriosclerosis: false,
+  hasCoronaryHeartDisease: false,
+  hasMyocardialInfarction: false,
+  hasStroke: false,
+  usedMetforminBadControl: false,
+  usedSulfonylureaBadControl: false,
+  usedInsulinBadControl: false,
+};
+
+export function computePtdsBmi(weightKg: number, heightCm: number): number {
+  const heightM = heightCm / 100;
+  return weightKg / (heightM * heightM);
 }
 
 export interface PtdsInitResponse {
@@ -75,6 +118,179 @@ export interface AgentChatErrorResponse {
 }
 
 export type AgentChatResponse = RuntimeContextResponse | AgentChatErrorResponse;
+
+export interface CompliancePreviewResult {
+  status: "success" | "error";
+  message: string;
+  metadata?: {
+    version_id: string;
+    release_date: string;
+    publisher: string;
+    publisher_signature?: string;
+    ruleset_hash: string;
+  };
+  rule_count?: number;
+  drug_ids?: string[];
+  source_file_hash?: string;
+}
+
+export interface ComplianceImportResult {
+  status: "success" | "error";
+  message: string;
+  standard_id?: string;
+  rules_imported?: number;
+  drugs_registered?: number;
+  source_file_hash?: string;
+}
+
+export interface MedicationComplianceStandardRow {
+  standard_id: string;
+  schema_uri: string | null;
+  release_date: string;
+  publisher: string;
+  publisher_signature: string | null;
+  ruleset_hash: string;
+  source_file_hash: string;
+  source_label: string | null;
+  imported_at: string;
+  consent_session_id: string;
+  is_active: number;
+}
+
+export interface ComplianceStandardsResponse {
+  status: "success" | "error";
+  standards?: MedicationComplianceStandardRow[];
+  message?: string;
+}
+
+export interface AuditEventRow {
+  event_id: string;
+  audit_trail_id: string;
+  step: string;
+  timestamp: number;
+  component: string;
+  input: Record<string, unknown>;
+  output: Record<string, unknown>;
+  status: string;
+}
+
+export interface AuditEventsResponse {
+  status: "success" | "error";
+  scope?: string;
+  audit_dir?: string;
+  events?: AuditEventRow[];
+  message?: string;
+}
+
+export interface ReferencePreviewResult {
+  status: "success" | "error";
+  message: string;
+  metadata?: {
+    version_id: string;
+    release_date: string;
+    publisher: string;
+    package_hash: string;
+  };
+  drug_count?: number;
+  rule_count?: number;
+  drug_ids?: string[];
+  package_hash?: string;
+  changed_from_local?: boolean;
+}
+
+export interface ReferenceSyncResult {
+  status: "success" | "error";
+  message: string;
+  version_id?: string;
+  drugs_synced?: number;
+  rules_synced?: number;
+  package_hash?: string;
+  subscription_url?: string | null;
+  skipped_unchanged?: boolean;
+}
+
+export interface ReferenceSyncStateRow {
+  sync_id: string;
+  version_id: string;
+  package_hash: string;
+  source_label: string | null;
+  subscription_url: string | null;
+  consent_session_id: string;
+  drug_count: number;
+  rule_count: number;
+  synced_at: string;
+}
+
+export interface ReferenceStatusResponse {
+  status: "success" | "error";
+  message?: string;
+  local_drug_count?: number;
+  local_rule_count?: number;
+  last_sync?: ReferenceSyncStateRow | null;
+}
+
+export interface DeviceImportPreviewResult {
+  status: "success" | "error";
+  message: string;
+  sql_statements?: string[];
+  sql_hash?: string;
+  statement_count?: number;
+  tables?: string[];
+  duration_ms?: number;
+  payload_bytes?: number;
+}
+
+export interface DeviceImportResult {
+  status: "success" | "error";
+  message: string;
+  rows_affected?: number;
+  tables?: string[];
+  statement_count?: number;
+  sql_hash?: string;
+}
+
+export interface DeviceImportPreviewRequestBody {
+  package?: unknown;
+  url?: string;
+  deviceHint?: string;
+}
+
+export interface DeviceImportExecuteRequestBody {
+  consentGranted: boolean;
+  sessionId: string;
+  sourceLabel?: string;
+  package?: unknown;
+  url?: string;
+  deviceHint?: string;
+  sql_statements: string[];
+  sql_hash: string;
+}
+
+export interface ReferenceSyncRequestBody {
+  consentGranted: boolean;
+  sessionId: string;
+  sourceLabel?: string;
+  package?: unknown;
+  url?: string;
+  saveSubscriptionUrl?: boolean;
+}
+
+export interface ReferenceBundledSyncRequestBody {
+  consentGranted: boolean;
+  sessionId: string;
+}
+
+export interface ComplianceImportRequestBody {
+  consentGranted: boolean;
+  sessionId: string;
+  sourceLabel?: string;
+  package: unknown;
+}
+
+export interface ComplianceBundledImportRequestBody {
+  consentGranted: boolean;
+  sessionId: string;
+}
 
 export function isAgentChatError(r: AgentChatResponse): r is AgentChatErrorResponse {
   // Runtime Context responses have no top-level `status`; error envelopes always do.
@@ -150,6 +366,16 @@ export async function callJson<TResponse>(
       `Non-JSON response from ${path} (${response.status})${hint}: ${text.slice(0, 200)}`,
     );
   }
+  if (!response.ok) {
+    const message =
+      typeof parsed === "object" &&
+      parsed !== null &&
+      "message" in parsed &&
+      typeof (parsed as { message: unknown }).message === "string"
+        ? (parsed as { message: string }).message
+        : text.slice(0, 200);
+    throw new Error(`${path} failed (${response.status}): ${message}`);
+  }
   return parsed as TResponse;
 }
 
@@ -160,6 +386,17 @@ export interface TrustclawApiClient {
   tables(): Promise<PtdsTablesResponse>;
   browse(table: string, limit?: number): Promise<PtdsBrowseResponse>;
   chat(body: AgentChatRequest): Promise<AgentChatResponse>;
+  compliancePreview(packagePayload: unknown): Promise<CompliancePreviewResult>;
+  complianceImport(body: ComplianceImportRequestBody): Promise<ComplianceImportResult>;
+  complianceImportBundled(body: ComplianceBundledImportRequestBody): Promise<ComplianceImportResult>;
+  complianceStandards(): Promise<ComplianceStandardsResponse>;
+  referencePreview(body: { package?: unknown; url?: string }): Promise<ReferencePreviewResult>;
+  referenceSync(body: ReferenceSyncRequestBody): Promise<ReferenceSyncResult>;
+  referenceSyncBundled(body: ReferenceBundledSyncRequestBody): Promise<ReferenceSyncResult>;
+  referenceStatus(): Promise<ReferenceStatusResponse>;
+  devicePreview(body: DeviceImportPreviewRequestBody): Promise<DeviceImportPreviewResult>;
+  deviceImport(body: DeviceImportExecuteRequestBody): Promise<DeviceImportResult>;
+  auditEvents(scope?: "compliance" | "chat" | "all", limit?: number): Promise<AuditEventsResponse>;
 }
 
 export function createApiClient(
@@ -192,6 +429,66 @@ export function createApiClient(
         method: "POST",
         body: JSON.stringify(body),
       });
+    },
+    compliancePreview(packagePayload) {
+      return callJson(fetchImpl, baseUrl, "/api/ptds/compliance/preview", {
+        method: "POST",
+        body: JSON.stringify({ package: packagePayload }),
+      });
+    },
+    complianceImport(body) {
+      return callJson(fetchImpl, baseUrl, "/api/ptds/compliance/import", {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
+    },
+    complianceImportBundled(body) {
+      return callJson(fetchImpl, baseUrl, "/api/ptds/compliance/import/bundled-glp1-v2", {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
+    },
+    complianceStandards() {
+      return callJson(fetchImpl, baseUrl, "/api/ptds/compliance/standards");
+    },
+    referencePreview(body) {
+      return callJson(fetchImpl, baseUrl, "/api/ptds/reference/preview", {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
+    },
+    referenceSync(body) {
+      return callJson(fetchImpl, baseUrl, "/api/ptds/reference/sync", {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
+    },
+    referenceSyncBundled(body) {
+      return callJson(fetchImpl, baseUrl, "/api/ptds/reference/sync/bundled-glp1", {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
+    },
+    referenceStatus() {
+      return callJson(fetchImpl, baseUrl, "/api/ptds/reference/status");
+    },
+    devicePreview(body) {
+      return callJson(fetchImpl, baseUrl, "/api/ptds/device/preview", {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
+    },
+    deviceImport(body) {
+      return callJson(fetchImpl, baseUrl, "/api/ptds/device/import", {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
+    },
+    auditEvents(scope = "compliance", limit = 30) {
+      const url = new URL("/api/ptds/audit/events", "http://x");
+      url.searchParams.set("scope", scope);
+      url.searchParams.set("limit", String(limit));
+      return callJson(fetchImpl, baseUrl, url.pathname + url.search);
     },
   };
 }

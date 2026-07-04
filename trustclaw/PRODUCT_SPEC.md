@@ -29,22 +29,39 @@ Request (frozen demo shape; server maps into PTDS v1.1 tables):
 
 ```json
 {
+  "patientName": "张三",
+  "gender": "男",
+  "age": 45,
   "weight": 85.0,
   "height": 170.0,
+  "bmi": 29.4,
   "hba1c": 6.8,
-  "thyroid_cancer_history": 0,
-  "pancreatitis_history": 0,
-  "include_t2dm_diagnosis": true
+  "isPregnantOrLactating": false,
+  "hasType2Diabetes": true,
+  "thyroidHistory": false,
+  "pancreatitisHistory": false,
+  "cardiovascularRisk": false,
+  "gastrointestinalSensitivity": false,
+  "hasArteriosclerosis": false,
+  "hasCoronaryHeartDisease": false,
+  "hasMyocardialInfarction": false,
+  "hasStroke": false,
+  "usedMetforminBadControl": false,
+  "usedSulfonylureaBadControl": false,
+  "usedInsulinBadControl": false
 }
 ```
 
 | Field | Maps to |
 | --- | --- |
+| `patientName` / `gender` / `age` | `user_profile` (`name`, `biological_sex`, derived `birth_date`) |
 | `weight` / `height` | `body_anthropometrics` (`weight_kg`, `height_m`, generated `bmi`) |
 | `hba1c` | `lab_test_results` (`test_code = 'HbA1c'`) |
-| `thyroid_cancer_history = 1` | `clinical_diagnoses` (`icd10_code = 'C73'`) |
-| `pancreatitis_history = 1` | `clinical_diagnoses` (`icd10_code = 'K85'`) |
-| `include_t2dm_diagnosis = true` | `clinical_diagnoses` (`icd10_code = 'E11'`) |
+| `hasType2Diabetes` | `clinical_diagnoses` (`icd10_code = 'E11'`) |
+| `thyroidHistory` | `clinical_diagnoses` (`icd10_code = 'C73'`) |
+| `pancreatitisHistory` | `clinical_diagnoses` (`icd10_code = 'K85'`) |
+| `hasCoronaryHeartDisease` / `hasMyocardialInfarction` / `hasStroke` | `clinical_diagnoses` (`I25` / `I21` / `I63`) → `has_cardiovascular_comorbidity` view |
+| `usedMetforminBadControl` / `usedSulfonylureaBadControl` | `medication_history` (`termination_reason = 'INEFFECTIVE'`) → `prior_oral_therapy_status` view |
 
 Response:
 

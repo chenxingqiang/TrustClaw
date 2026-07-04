@@ -13,6 +13,7 @@ This repo targets **TrustClaw** (Personal Trusted Data Space Runtime), not upstr
 - OpenClaw reuse map: `trustclaw/OPENCLAW_REUSE.md`
 - Sprint roadmap: `trustclaw/ROADMAP.md`
 - Loop iteration guide: `trustclaw/AGENTS.md` — **read before any `trustclaw/**` change**
+- Dev quick start: `trustclaw/GETTING_STARTED.md`
 - Vision: `VISION.md`
 
 Default new feature work goes under `trustclaw/**`. Keep OpenClaw core changes minimal unless integrating Gateway HTTP, LLM, or SQLite seams. User-facing brand: **TrustClaw**; CLI/config may still say `openclaw` until Phase 2.

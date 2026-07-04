@@ -7,6 +7,28 @@ import { vi } from "vitest";
 import { createTrustclawPtdsQueryToolFactory } from "./ptds-query-tool.js";
 import { createPtdsInitHandler } from "./ptds-routes.js";
 
+const sampleInitPayload = {
+  patientName: "张三",
+  gender: "男",
+  age: 45,
+  weight: 85,
+  height: 170,
+  hba1c: 6.8,
+  isPregnantOrLactating: false,
+  hasType2Diabetes: true,
+  thyroidHistory: false,
+  pancreatitisHistory: false,
+  cardiovascularRisk: false,
+  gastrointestinalSensitivity: false,
+  hasArteriosclerosis: false,
+  hasCoronaryHeartDisease: false,
+  hasMyocardialInfarction: false,
+  hasStroke: false,
+  usedMetforminBadControl: false,
+  usedSulfonylureaBadControl: false,
+  usedInsulinBadControl: false,
+};
+
 function createMockResponse(): ServerResponse & { getBody: () => string } {
   const state = { statusCode: 200, body: "" };
   const res = {
@@ -35,14 +57,7 @@ describe("trustclaw_ptds_query tool", () => {
       const initReq = {
         method: "POST",
         async *[Symbol.asyncIterator]() {
-          yield JSON.stringify({
-            weight: 85,
-            height: 170,
-            hba1c: 6.8,
-            thyroid_cancer_history: 0,
-            pancreatitis_history: 0,
-            include_t2dm_diagnosis: true,
-          });
+          yield JSON.stringify(sampleInitPayload);
         },
       } as IncomingMessage;
       const initRes = createMockResponse();

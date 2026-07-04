@@ -1,14 +1,57 @@
+/** Frozen `POST /api/ptds/init` request shape (Panel A). */
 export type PtdsInitRequest = {
+  patientName?: string;
+  gender: "男" | "女";
+  age: number;
   weight: number;
   height: number;
+  /** Client hint; SQLite stores generated BMI on body_anthropometrics. */
+  bmi?: number;
   hba1c: number;
-  thyroid_cancer_history: 0 | 1;
-  pancreatitis_history: 0 | 1;
-  /** Optional display name for user_profile row. */
-  name?: string;
-  /** When true, seed active T2DM (E11) for NRDL GLP-1 assessment path. */
-  include_t2dm_diagnosis?: boolean;
+  isPregnantOrLactating: boolean;
+  hasType2Diabetes: boolean;
+  thyroidHistory: boolean;
+  pancreatitisHistory: boolean;
+  cardiovascularRisk: boolean;
+  gastrointestinalSensitivity: boolean;
+  hasArteriosclerosis: boolean;
+  hasCoronaryHeartDisease: boolean;
+  hasMyocardialInfarction: boolean;
+  hasStroke: boolean;
+  usedMetforminBadControl: boolean;
+  usedSulfonylureaBadControl: boolean;
+  usedInsulinBadControl: boolean;
 };
+
+export const PTDS_INIT_DEFAULTS: Required<
+  Pick<PtdsInitRequest, "patientName" | "gender" | "age">
+> &
+  Omit<PtdsInitRequest, "patientName" | "gender" | "age" | "bmi"> = {
+  patientName: "张三",
+  gender: "男",
+  age: 45,
+  weight: 82,
+  height: 170,
+  hba1c: 6.8,
+  isPregnantOrLactating: false,
+  hasType2Diabetes: true,
+  thyroidHistory: false,
+  pancreatitisHistory: false,
+  cardiovascularRisk: false,
+  gastrointestinalSensitivity: false,
+  hasArteriosclerosis: false,
+  hasCoronaryHeartDisease: false,
+  hasMyocardialInfarction: false,
+  hasStroke: false,
+  usedMetforminBadControl: false,
+  usedSulfonylureaBadControl: false,
+  usedInsulinBadControl: false,
+};
+
+export function computePtdsBmi(weightKg: number, heightCm: number): number {
+  const heightM = heightCm / 100;
+  return weightKg / (heightM * heightM);
+}
 
 export type PtdsInitResult = {
   status: "success" | "error";

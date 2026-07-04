@@ -15,6 +15,22 @@ function isRuntimeContextPayload(value: unknown): value is RuntimeContextRespons
   );
 }
 
+function isAllowedRuntimeContextOrigin(origin: string, allowed: Set<string>): boolean {
+  if (allowed.has(origin)) {
+    return true;
+  }
+  // Dev: Vite UI (:5174) listens while Control UI chat runs on gateway (:19001).
+  try {
+    const { hostname } = new URL(origin);
+    if (hostname === "127.0.0.1" || hostname === "localhost") {
+      return true;
+    }
+  } catch {
+    // ignore malformed origin
+  }
+  return false;
+}
+
 export function bindTrustclawRuntimeContextListener(handlers: {
   renderAudit: (context: RuntimeContextResponse) => void;
   appendLedger: (context: RuntimeContextResponse) => void;
@@ -26,7 +42,7 @@ export function bindTrustclawRuntimeContextListener(handlers: {
   );
 
   const onMessage = (event: MessageEvent) => {
-    if (!allowed.has(event.origin)) {
+    if (!isAllowedRuntimeContextOrigin(event.origin, allowed)) {
       return;
     }
     const data = event.data;

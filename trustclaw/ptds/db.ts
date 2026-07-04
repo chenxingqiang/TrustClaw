@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { PTDS_SCHEMA_V11_SQL, PTDS_SEED_NRDL_GLP1_SQL, resolvePtdsDbPath } from "./paths.js";
+import { PTDS_COMPLIANCE_STANDARDS_SQL, PTDS_REFERENCE_SYNC_SQL, PTDS_SCHEMA_V11_SQL, PTDS_SEED_NRDL_GLP1_SQL, resolvePtdsDbPath } from "./paths.js";
 
 /** Canonical user_id for the local personal PTDS owner (V1 single-user space). */
 export const PTDS_LOCAL_USER_ID = "local_user";
@@ -38,6 +38,16 @@ export function applyPtdsSchema(db: DatabaseSync): void {
   db.exec(schemaSql);
 }
 
+export function applyComplianceStandardsSchema(db: DatabaseSync): void {
+  const schemaSql = readFileSync(PTDS_COMPLIANCE_STANDARDS_SQL, "utf8");
+  db.exec(schemaSql);
+}
+
+export function applyReferenceSyncSchema(db: DatabaseSync): void {
+  const schemaSql = readFileSync(PTDS_REFERENCE_SYNC_SQL, "utf8");
+  db.exec(schemaSql);
+}
+
 export function seedNrdlGlp1RulesIfEmpty(db: DatabaseSync): void {
   const row = db
     .prepare("SELECT COUNT(*) AS count FROM nrdl_drug_registry")
@@ -52,6 +62,25 @@ export function seedNrdlGlp1RulesIfEmpty(db: DatabaseSync): void {
 export function bootstrapPtdsDatabase(dbPath = resolvePtdsDbPath()): DatabaseSync {
   const db = openPtdsDatabase(dbPath);
   applyPtdsSchema(db);
+  applyComplianceStandardsSchema(db);
+  applyReferenceSyncSchema(db);
   seedNrdlGlp1RulesIfEmpty(db);
   return db;
+}
+
+/** node:sqlite DatabaseSync has no better-sqlite3-style `.transaction()`; use explicit BEGIN/COMMIT. */
+export function runPtdsImmediateTransactionSync<T>(db: DatabaseSync, operation: () => T): T {
+  db.exec("BEGIN IMMEDIATE");
+  try {
+    const result = operation();
+    db.exec("COMMIT");
+    return result;
+  } catch (error) {
+    try {
+      db.exec("ROLLBACK");
+    } catch {
+      // Preserve the original import error when rollback fails.
+    }
+    throw error;
+  }
 }

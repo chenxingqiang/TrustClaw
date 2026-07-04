@@ -40,10 +40,14 @@ function syncDevWorkspace() {
       cpSync(src, path.join(targetDir, name), { force: true });
     }
   }
+  const avatarSrcDir = path.join(workspaceTemplateDir, "avatars");
+  if (existsSync(avatarSrcDir)) {
+    cpSync(avatarSrcDir, path.join(targetDir, "avatars"), { force: true, recursive: true });
+  }
   console.log(`[trustclaw:setup] Synced PTDS workspace prompts → ${targetDir}`);
 }
 
-// Enable for default + dev profiles so Control UI (:18789) and trustclaw:dev (:19001) both work.
+// Enable for default + dev profiles
 const profiles = devArgs.length > 0 ? [devArgs] : [[], ["--dev"]];
 let exitCode = 0;
 for (const profileArgs of profiles) {

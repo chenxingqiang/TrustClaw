@@ -1427,6 +1427,16 @@
   padding-inline: 8px;
 }
 
+.trustclaw-ptds-rail--collapsed .trustclaw-ptds-rail__frame {
+  /* Keep iframe mounted so runtime-context postMessage still reaches Panel D/E when collapsed. */
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .trustclaw-ptds-rail__title {
   font-size: var(--control-ui-text-sm);
   font-weight: 600;

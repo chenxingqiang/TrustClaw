@@ -104,23 +104,30 @@ export function notifyTrustclawPtdsTheme(resolved: string, themeMode: "light" | 
   }
 }
 
+function postRuntimeContextToFrame(
+  iframe: HTMLIFrameElement,
+  message: { type: string; context: TrustclawRuntimeContextPayload },
+): void {
+  iframe.contentWindow?.postMessage(message, "*");
+}
+
 export function notifyTrustclawRuntimeContext(context: TrustclawRuntimeContextPayload): void {
   if (typeof document === "undefined") {
     return;
   }
 
-  const iframe = document.querySelector<HTMLIFrameElement>(
-    ".trustclaw-ptds-rail--right:not(.trustclaw-ptds-rail--collapsed) .trustclaw-ptds-rail__frame",
-  );
-  if (iframe?.contentWindow) {
-    iframe.contentWindow.postMessage(
-      { type: TRUSTCLAW_RUNTIME_CONTEXT_MESSAGE, context },
-      window.location.origin,
-    );
+  const message = { type: TRUSTCLAW_RUNTIME_CONTEXT_MESSAGE, context };
+
+  for (const iframe of document.querySelectorAll<HTMLIFrameElement>("iframe.trustclaw-ptds-rail__frame")) {
+    const src = iframe.getAttribute("src") ?? "";
+    if (src.includes("embed=right")) {
+      postRuntimeContextToFrame(iframe, message);
+    }
   }
 
+  // Standalone TrustClaw console: Panel D/E live on the parent page; chat runs in .console-chat-frame.
   if (window.parent !== window) {
-    window.parent.postMessage({ type: TRUSTCLAW_RUNTIME_CONTEXT_MESSAGE, context }, "*");
+    window.parent.postMessage(message, "*");
   }
 }
 
@@ -128,7 +135,8 @@ export function syncTrustclawPtdsRuntimeContext(
   host: TrustclawPtdsHost,
   data: Record<string, unknown>,
 ): void {
-  const context = parseRuntimeContextFromToolResult(data.result);
+  const context =
+    parseRuntimeContextFromToolResult(data.result) ?? parseRuntimeContextFromToolResult(data);
   if (!context) {
     return;
   }

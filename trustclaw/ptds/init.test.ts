@@ -13,6 +13,7 @@ import {
   readGlp1CheckSnapshot,
   assertReadOnlySelectSql,
 } from "./index.js";
+import { PTDS_INIT_DEFAULTS } from "./types.js";
 
 describe("trustclaw/ptds", () => {
   it("bootstraps schema v1.1 and NRDL seed rules", () => {
@@ -43,12 +44,11 @@ describe("trustclaw/ptds", () => {
     try {
       const result = initializePtds(
         {
+          ...PTDS_INIT_DEFAULTS,
           weight: 85,
           height: 170,
           hba1c: 6.8,
-          thyroid_cancer_history: 0,
-          pancreatitis_history: 0,
-          include_t2dm_diagnosis: true,
+          hasType2Diabetes: true,
         },
         dbPath,
       );
@@ -70,6 +70,12 @@ describe("trustclaw/ptds", () => {
         )
         .get() as { bmi: number };
       expect(bmiRow.bmi).toBeCloseTo(29.4, 1);
+
+      const profile = db
+        .prepare("SELECT name, biological_sex FROM user_profile WHERE user_id = ?")
+        .get(PTDS_LOCAL_USER_ID) as { name: string; biological_sex: number };
+      expect(profile.name).toBe("张三");
+      expect(profile.biological_sex).toBe(1);
       db.close();
     } finally {
       rmSync(dir, { recursive: true, force: true });
@@ -82,16 +88,37 @@ describe("trustclaw/ptds", () => {
     try {
       initializePtds(
         {
+          ...PTDS_INIT_DEFAULTS,
           weight: 80,
           height: 175,
           hba1c: 7.2,
-          thyroid_cancer_history: 1,
-          pancreatitis_history: 0,
+          hasType2Diabetes: false,
+          thyroidHistory: true,
         },
         dbPath,
       );
       const snapshot = readGlp1CheckSnapshot(dbPath);
       expect(snapshot?.has_absolute_contraindication).toBe(1);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("stores prior oral therapy flags in snapshot view", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "trustclaw-ptds-med-"));
+    const dbPath = path.join(dir, "local_ptds.db");
+    try {
+      initializePtds(
+        {
+          ...PTDS_INIT_DEFAULTS,
+          hasType2Diabetes: true,
+          usedMetforminBadControl: true,
+          usedSulfonylureaBadControl: true,
+        },
+        dbPath,
+      );
+      const snapshot = readGlp1CheckSnapshot(dbPath);
+      expect(snapshot?.prior_oral_therapy_status).toBe(3);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -103,11 +130,10 @@ describe("trustclaw/ptds", () => {
     try {
       initializePtds(
         {
+          ...PTDS_INIT_DEFAULTS,
           weight: 85,
           height: 170,
           hba1c: 6.8,
-          thyroid_cancer_history: 0,
-          pancreatitis_history: 0,
         },
         dbPath,
       );

@@ -19,6 +19,7 @@
 | **D13** | 品牌与 CLI | 对外 TrustClaw；CLI/包名暂 `openclaw` | **approved** | product | |
 | **D14** | 业务规则 | 禁止 TS 硬编码 GLP-1 规则；仅 SQLite 种子 | **approved** | product | |
 | **D15** | 多 Agent 路由 | V1 仅 GLP-1；Coordinator 接口预留 | **deferred** | product | Phase 3 |
+| **D16** | 外部 NRDL 参考表订阅（B 类） | HTTPS/JSON 拉取 → 本地 `nrdl_drug_registry` + `nrdl_payment_rules`；不动个人表；consent + `REFERENCE_SYNC` 审计；无运行时远程 DB | **approved** | product | Task 502 |
 
 ## 生效说明
 

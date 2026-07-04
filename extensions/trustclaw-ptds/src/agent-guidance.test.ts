@@ -6,6 +6,7 @@ describe("trustclaw PTDS agent guidance", () => {
     expect(TRUSTCLAW_PTDS_AGENT_GUIDANCE).toContain("C3-PO");
     expect(TRUSTCLAW_PTDS_AGENT_GUIDANCE).toContain("PTDS Console");
     expect(TRUSTCLAW_PTDS_AGENT_GUIDANCE).toContain("trustclaw_ptds_query");
+    expect(TRUSTCLAW_PTDS_AGENT_GUIDANCE).toContain("trustclaw_ptds_write");
     expect(TRUSTCLAW_PTDS_AGENT_GUIDANCE).toMatch(/not.*Claude Code/i);
   });
 

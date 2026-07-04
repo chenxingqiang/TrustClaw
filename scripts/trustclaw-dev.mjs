@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // One-command TrustClaw dev loop: enable plugin, start gateway + demo UI dev server.
 import { execSync, spawn, spawnSync } from "node:child_process";
+import { cpSync, existsSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -23,6 +24,24 @@ function listenerPid(port) {
   } catch {
     return null;
   }
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Gateway rebuild on cold start can take 15–90s; Vite must not proxy until listen. */
+async function waitForGatewayListen(port, timeoutMs = 120_000) {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    if (listenerPid(port) != null) {
+      return;
+    }
+    await sleep(500);
+  }
+  throw new Error(
+    `[trustclaw:dev] Gateway did not listen on :${port} within ${Math.round(timeoutMs / 1000)}s`,
+  );
 }
 
 function assertDevPortsFree() {
@@ -54,6 +73,33 @@ function assertDevPortsFree() {
       `Or use another UI port: TRUSTCLAW_UI_PORT=5175 pnpm trustclaw:dev\n`,
   );
   process.exit(1);
+}
+
+function ensureControlUiPublicAssets() {
+  const distUiDir = path.join(repoRoot, "dist", "control-ui");
+  const publicUiDir = path.join(repoRoot, "ui", "public");
+  const marker = path.join(distUiDir, "favicon.svg");
+  if (existsSync(marker)) {
+    return;
+  }
+  if (!existsSync(publicUiDir)) {
+    console.warn("[trustclaw:dev] ui/public missing; chat logos may not load until `pnpm ui:build`.");
+    return;
+  }
+  mkdirSync(distUiDir, { recursive: true });
+  for (const name of [
+    "favicon.svg",
+    "apple-touch-icon.png",
+    "favicon-32.png",
+    "favicon.ico",
+    "manifest.webmanifest",
+  ]) {
+    const src = path.join(publicUiDir, name);
+    if (existsSync(src)) {
+      cpSync(src, path.join(distUiDir, name), { force: true });
+    }
+  }
+  console.log("[trustclaw:dev] Copied Control UI public icons → dist/control-ui/");
 }
 
 function runNodeScript(scriptRelPath, args = []) {
@@ -92,12 +138,12 @@ if ((setup.status ?? 1) !== 0) {
   process.exit(setup.status ?? 1);
 }
 
+ensureControlUiPublicAssets();
+
 assertDevPortsFree();
 
-console.log("[trustclaw:dev] Starting Gateway (channels skipped) + TrustClaw UI (Vite)…");
-console.log(
-  `[trustclaw:dev] Open http://127.0.0.1:${uiPort}/trustclaw/ (API proxied to gateway :${gatewayPort} dev port)`,
-);
+console.log("[trustclaw:dev] Starting Gateway (channels skipped)…");
+console.log(`[trustclaw:dev] Waiting for gateway :${gatewayPort} before TrustClaw UI (Vite)…`);
 
 const devEnv = {
   ...process.env,
@@ -107,25 +153,43 @@ const devEnv = {
   TRUSTCLAW_UI_PORT: uiPort,
 };
 
-children.push(
-  spawn(process.execPath, [path.join(repoRoot, "scripts/run-node.mjs"), "--dev", "gateway"], {
+const gatewayChild = spawn(
+  process.execPath,
+  [path.join(repoRoot, "scripts/run-node.mjs"), "--dev", "gateway"],
+  {
     cwd: repoRoot,
     stdio: "inherit",
     env: devEnv,
-  }),
+  },
 );
-children.push(
-  spawn(process.execPath, [path.join(repoRoot, "scripts/trustclaw-ui.js"), "dev"], {
-    cwd: repoRoot,
-    stdio: "inherit",
-    env: devEnv,
-  }),
+children.push(gatewayChild);
+
+gatewayChild.on("exit", (code) => {
+  if (code && code !== 0) {
+    shutdown(code);
+  }
+});
+
+try {
+  await waitForGatewayListen(gatewayPort);
+} catch (error) {
+  console.error(error instanceof Error ? error.message : String(error));
+  shutdown(1);
+}
+
+console.log(
+  `[trustclaw:dev] Gateway ready. Open http://127.0.0.1:${uiPort}/trustclaw/ (API proxied to :${gatewayPort})`,
 );
 
-for (const child of children) {
-  child.on("exit", (code) => {
-    if (code && code !== 0) {
-      shutdown(code);
-    }
-  });
-}
+const uiChild = spawn(process.execPath, [path.join(repoRoot, "scripts/trustclaw-ui.js"), "dev"], {
+  cwd: repoRoot,
+  stdio: "inherit",
+  env: devEnv,
+});
+children.push(uiChild);
+
+uiChild.on("exit", (code) => {
+  if (code && code !== 0) {
+    shutdown(code);
+  }
+});

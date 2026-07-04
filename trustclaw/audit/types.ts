@@ -1,4 +1,8 @@
 export type AuditStepCode =
+  | "COMPLIANCE_IMPORT"
+  | "REFERENCE_SYNC"
+  | "DEVICE_IMPORT"
+  | "DATA_CONSENT"
   | "TEXT2SQL_GEN"
   | "DB_QUERY"
   | "RULE_EVAL"
@@ -6,6 +10,10 @@ export type AuditStepCode =
   | "LEDGER_COMMIT";
 
 export type AuditComponent =
+  | "PTDS.ComplianceImport"
+  | "PTDS.ReferenceSync"
+  | "PTDS.DeviceImport"
+  | "PTDS.Consent"
   | "AgentRuntime.Text2SQL"
   | "PTDS.Query"
   | "AgentRuntime.ExecRule"

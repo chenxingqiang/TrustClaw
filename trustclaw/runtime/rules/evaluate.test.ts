@@ -4,6 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { PTDS_LOCAL_USER_ID } from "../../ptds/db.js";
 import { initializePtds } from "../../ptds/init.js";
+import { PTDS_INIT_DEFAULTS } from "../../ptds/types.js";
 import { evaluateGlp1Rules, evaluateGlp1RulesFromDb } from "./index.js";
 import type { NrdlPaymentRuleRow } from "./types.js";
 
@@ -72,12 +73,11 @@ describe("trustclaw/runtime/rules", () => {
     try {
       initializePtds(
         {
+          ...PTDS_INIT_DEFAULTS,
           weight: 85,
           height: 170,
           hba1c: 6.8,
-          thyroid_cancer_history: 0,
-          pancreatitis_history: 0,
-          include_t2dm_diagnosis: true,
+          hasType2Diabetes: true,
         },
         dbPath,
       );

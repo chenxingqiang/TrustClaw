@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { initializePtds } from "../../ptds/init.js";
+import { PTDS_INIT_DEFAULTS } from "../../ptds/types.js";
 import { buildGlp1Decision } from "./glp1-decision.js";
 import { runTrustclawChat } from "./run-chat.js";
 
@@ -49,12 +50,11 @@ describe("trustclaw/runtime/pipeline", () => {
     try {
       initializePtds(
         {
+          ...PTDS_INIT_DEFAULTS,
           weight: 85,
           height: 170,
           hba1c: 6.8,
-          thyroid_cancer_history: 0,
-          pancreatitis_history: 0,
-          include_t2dm_diagnosis: true,
+          hasType2Diabetes: true,
         },
         { dbPath },
       );
@@ -123,11 +123,10 @@ describe("trustclaw/runtime/pipeline", () => {
     try {
       initializePtds(
         {
+          ...PTDS_INIT_DEFAULTS,
           weight: 85,
           height: 170,
           hba1c: 6.8,
-          thyroid_cancer_history: 0,
-          pancreatitis_history: 0,
         },
         { dbPath },
       );

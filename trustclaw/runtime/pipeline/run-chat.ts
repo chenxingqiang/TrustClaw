@@ -1,8 +1,11 @@
 import { createHash, randomBytes } from "node:crypto";
 import { AuditRecorder } from "../../audit/index.js";
-import { resolvePtdsAuditDir } from "../../ptds/paths.js";
+import { getActiveComplianceStandard } from "../../ptds/compliance-import.js";
+import { bootstrapPtdsDatabase } from "../../ptds/db.js";
+import { resolvePtdsAuditDir, resolvePtdsDbPath } from "../../ptds/paths.js";
 import { readGlp1CheckSnapshot, queryPtds } from "../../ptds/query.js";
 import { evaluateGlp1RulesFromDb } from "../rules/index.js";
+import { resolveGlp1EvalDrugId } from "../rules/resolve-glp1-drug-id.js";
 import { generateText2Sql } from "../text2sql/generate.js";
 import { buildGlp1Decision } from "./glp1-decision.js";
 import type { RunChatInput, RunChatOptions, RunChatResult, RuntimeContext } from "./types.js";
@@ -91,7 +94,18 @@ export async function runTrustclawChat(
     status: "SUCCESS",
   });
 
-  const ruleResult = evaluateGlp1RulesFromDb(dbOverrides);
+  const dbPath = resolvePtdsDbPath(dbOverrides);
+  const evalDb = bootstrapPtdsDatabase(dbPath);
+  let evalDrugId: string;
+  try {
+    evalDrugId = resolveGlp1EvalDrugId({
+      userQuery: input.message,
+      hasActiveComplianceStandard: getActiveComplianceStandard(evalDb) !== null,
+    });
+  } finally {
+    evalDb.close();
+  }
+  const ruleResult = evaluateGlp1RulesFromDb(dbOverrides, process.env, evalDrugId);
 
   audit.record({
     step: "RULE_EVAL",

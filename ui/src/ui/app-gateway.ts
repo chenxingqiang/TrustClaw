@@ -73,6 +73,10 @@ import {
   type SessionsState,
 } from "./controllers/sessions.ts";
 import {
+  clearTrustclawSessionAgentPack,
+  type TrustclawPtdsAgentPackState,
+} from "./controllers/trustclaw-ptds.ts";
+import {
   resolveGatewayErrorDetailCode,
   type GatewayEventFrame,
   type GatewayHelloOk,
@@ -1017,6 +1021,10 @@ function handleTerminalChatEvent(
         ...createChatSessionsLoadOverrides(host),
         ...scopedAgentListParamsForRefreshTarget(host, refreshTarget),
       });
+      void clearTrustclawSessionAgentPack(
+        host as unknown as TrustclawPtdsAgentPackState,
+        refreshTarget.sessionKey,
+      );
     }
   }
   // Reload history when tools were used only if the terminal event did not carry

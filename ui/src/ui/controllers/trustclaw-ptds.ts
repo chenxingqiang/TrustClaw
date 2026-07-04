@@ -1,5 +1,5 @@
-import { normalizeBasePath } from "../navigation.ts";
 import { resolveControlUiAuthCandidates } from "../control-ui-auth.ts";
+import { normalizeBasePath } from "../navigation.ts";
 import { normalizeOptionalString } from "../string-coerce.ts";
 
 export type TrustclawAgentPackSummary = {
@@ -21,13 +21,7 @@ export type TrustclawPtdsAgentPackState = {
   ptdsAgentPacksLoading: boolean;
   ptdsAgentPacksError: string | null;
   ptdsSessionAgentPackId: string | null;
-  ptdsSessionAgentPackSource:
-    | "session"
-    | "lock"
-    | "openclaw_agent"
-    | "default"
-    | "request"
-    | null;
+  ptdsSessionAgentPackSource: "session" | "lock" | "openclaw_agent" | "default" | "request" | null;
   ptdsSessionAgentPackLocked: boolean;
   ptdsSessionAgentPackMismatch: boolean;
   ptdsSessionAgentPackSaving: boolean;
@@ -124,6 +118,35 @@ export async function loadTrustclawSessionAgentPack(
     state.ptdsSessionAgentPackSource = null;
     state.ptdsSessionAgentPackLocked = false;
     state.ptdsSessionAgentPackMismatch = false;
+  }
+}
+
+/** Clear session pack binding + coordinator lock (e.g. after `/reset`). */
+export async function clearTrustclawSessionAgentPack(
+  state: TrustclawPtdsAgentPackState,
+  sessionKey?: string | null,
+): Promise<void> {
+  const sessionId = normalizeOptionalString(sessionKey ?? state.sessionKey);
+  if (!sessionId || typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    const params = new URLSearchParams({ session_id: sessionId });
+    await fetchPtdsJson<{ status: string; cleared?: boolean }>(
+      state,
+      `/api/ptds/session/agent-pack?${params.toString()}`,
+      { method: "DELETE" },
+    );
+  } catch {
+    // Best-effort: chat reset must not fail when PTDS is unavailable.
+    return;
+  }
+
+  if (normalizeOptionalString(state.sessionKey) === sessionId) {
+    state.ptdsSessionAgentPackLocked = false;
+    state.ptdsSessionAgentPackMismatch = false;
+    await loadTrustclawSessionAgentPack(state);
   }
 }
 

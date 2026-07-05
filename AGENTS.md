@@ -7,14 +7,12 @@ Skills own workflows; root owns hard policy and routing.
 
 This repo targets **TrustClaw** (Personal Trusted Data Space Runtime), not upstream OpenClaw product work.
 
-**Product loops are driven exclusively by `trustclaw/AGENTS.md`.** Read it before any `trustclaw/**` change. Run Perceive → Strategy → Implement → Verify → Evolve only via that file’s Infinite Optimization Loop and checklists. `PLAN.md`, `ROADMAP.md`, and `DECISIONS.md` are supporting context — never start a loop from them alone.
+**Product loops are driven exclusively by `trustclaw/AGENTS.md`.** Read it before any `trustclaw/**` change. Run Perceive → Strategy → Implement → Verify → Evolve only via that file’s Infinite Optimization Loop and checklists. `DECISIONS.md` is the human-approval gate — never start a loop from it alone.
 
 - Loop + compliance authority: `trustclaw/AGENTS.md`
 - Dev quick start: `trustclaw/GETTING_STARTED.md`
 - Human approval: `trustclaw/DECISIONS.md`
-- Task IDs (read-only): `trustclaw/ROADMAP.md`
 - OpenClaw reuse map: `trustclaw/OPENCLAW_REUSE.md`
-- Background plan: `trustclaw/PLAN.md`
 - Vision: `VISION.md`
 
 Default new feature work goes under `trustclaw/**`. Keep OpenClaw core changes minimal unless integrating Gateway HTTP, LLM, or SQLite seams. User-facing brand: **TrustClaw**; CLI/config may still say `openclaw` until Phase 2.

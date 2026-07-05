@@ -13,7 +13,7 @@ V1 demo scope: **GLP-1 assessment agent** on a frozen PTDS architecture (init �
 
 **TrustClaw docs**
 
-[Getting started](trustclaw/GETTING_STARTED.md) · [Vision](VISION.md) · [**Agent loop guide (canonical)**](trustclaw/AGENTS.md) · [Decisions (审核)](trustclaw/DECISIONS.md) · [5-day roadmap](trustclaw/ROADMAP.md) · [OpenClaw reuse](trustclaw/OPENCLAW_REUSE.md) · [Product plan (background)](trustclaw/PLAN.md)
+[Getting started](trustclaw/GETTING_STARTED.md) · [Vision](VISION.md) · [**Agent loop guide (canonical)**](trustclaw/AGENTS.md) · [Decisions (审核)](trustclaw/DECISIONS.md) · [OpenClaw reuse](trustclaw/OPENCLAW_REUSE.md)
 
 ## TrustClaw quick start 
 
@@ -267,4 +267,4 @@ Minimal `~/.openclaw/openclaw.json` (model + defaults):
 
 TrustClaw builds on [OpenClaw](https://github.com/openclaw/openclaw). Sponsors, star history, Molty branding, and the full contributor wall live in the [upstream README](https://github.com/openclaw/openclaw/blob/main/README.md). OpenClaw docs: [docs.openclaw.ai](https://docs.openclaw.ai).
 
-TrustClaw-specific docs: [Getting started](trustclaw/GETTING_STARTED.md) · [Vision](VISION.md) · [Product plan](trustclaw/PLAN.md).
+TrustClaw-specific docs: [Getting started](trustclaw/GETTING_STARTED.md) · [Vision](VISION.md) · [Decisions](trustclaw/DECISIONS.md).

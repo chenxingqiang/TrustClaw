@@ -1957,6 +1957,7 @@
     "trustclaw:build": "pnpm trustclaw:ui:build",
     "trustclaw:mac:dist": "bash scripts/trustclaw-package-mac-dist.sh",
     "trustclaw:mac:package": "MAC_APP_NAME=TrustClaw BUNDLE_ID=ai.trustclaw.mac.debug bash scripts/package-mac-app.sh",
+    "trustclaw:win:dist": "node scripts/trustclaw-package-windows-dist.mjs",
     "verify": "node scripts/verify.mjs"
   },
   "dependencies": {

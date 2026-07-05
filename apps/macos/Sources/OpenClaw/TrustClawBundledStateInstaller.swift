@@ -27,6 +27,7 @@ enum TrustClawBundledStateInstaller {
             try self.copyBundledState(from: bundledRoot, to: stateDir, resourcesRoot: resourcesRoot)
             try self.patchBundledConfig(at: configURL, resourcesRoot: resourcesRoot)
             try bundleVersion.write(to: markerURL, atomically: true, encoding: .utf8)
+            self.installConnectShortcut(from: bundledRoot)
             self.logger.info("Installed bundled TrustClaw state version=\(bundleVersion, privacy: .public)")
         } catch {
             self.logger.error("Failed to install bundled TrustClaw state: \(error.localizedDescription, privacy: .public)")
@@ -83,5 +84,23 @@ enum TrustClawBundledStateInstaller {
         var json = String(data: encoded, encoding: .utf8) ?? ""
         json = json.replacingOccurrences(of: self.agentsPlaceholder, with: agentsDir)
         try json.write(to: configURL, atomically: true, encoding: .utf8)
+    }
+
+    private static func installConnectShortcut(from bundledRoot: URL) {
+        let connectSrc = bundledRoot.appendingPathComponent("trustclaw-connect.url")
+        guard FileManager.default.fileExists(atPath: connectSrc.path) else { return }
+        guard let desktop = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first else {
+            return
+        }
+        let dest = desktop.appendingPathComponent("TrustClaw Connect.url")
+        if FileManager.default.fileExists(atPath: dest.path) {
+            try? FileManager.default.removeItem(at: dest)
+        }
+        do {
+            try FileManager.default.copyItem(at: connectSrc, to: dest)
+            self.logger.info("Installed desktop connect shortcut at \(dest.path, privacy: .public)")
+        } catch {
+            self.logger.error("Failed to install desktop connect shortcut: \(error.localizedDescription, privacy: .public)")
+        }
     }
 }

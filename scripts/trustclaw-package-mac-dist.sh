@@ -32,11 +32,18 @@ else
 fi
 
 echo "📋 Bundling TrustClaw config + credentials from local OpenClaw state…"
+export TRUSTCLAW_PACKAGED_DIST=1
 node "$ROOT_DIR/scripts/trustclaw-setup.mjs" || true
 BUNDLE_ARGS=()
 if [[ "${TRUSTCLAW_MAC_CONFIG_DEV:-0}" == "1" ]]; then
   BUNDLE_ARGS=(--dev)
 fi
 node "$ROOT_DIR/scripts/trustclaw-bundle-mac-config.mjs" "${BUNDLE_ARGS[@]}"
+
+CONNECT_URL="$ROOT_DIR/dist/trustclaw-mac-bundle/trustclaw-connect.url"
+if [[ -f "$CONNECT_URL" ]]; then
+  cp "$CONNECT_URL" "$ROOT_DIR/dist/TrustClaw Connect.url"
+  echo "🔗 Packaged connect shortcut: dist/TrustClaw Connect.url"
+fi
 
 exec bash "$ROOT_DIR/scripts/package-mac-dist.sh" "$@"

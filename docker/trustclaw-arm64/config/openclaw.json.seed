@@ -28,6 +28,9 @@
       },
       "acpx": {
         "enabled": false
+      },
+      "workboard": {
+        "enabled": true
       }
     }
   },

@@ -119,6 +119,10 @@ function applyEnvToConfig(config) {
         ...(config.plugins?.entries?.acpx ?? {}),
         enabled: false,
       },
+      workboard: {
+        ...(config.plugins?.entries?.workboard ?? {}),
+        enabled: true,
+      },
     },
   };
 

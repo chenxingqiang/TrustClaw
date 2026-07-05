@@ -4,8 +4,16 @@
  * Can be built on macOS; first Windows start runs `npm ci --omit=dev` if node_modules absent.
  */
 import { spawnSync } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { execSync } from "node:child_process";
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -97,7 +105,11 @@ function writeReadme(stagingRoot, version) {
 2. Double-click Start-TrustClaw.cmd
    - First launch runs npm ci --omit=dev (needs network)
    - Config + API keys from build copy to %USERPROFILE%\\.openclaw
-3. Open http://127.0.0.1:19001/
+   - Browser opens automatically with the default gateway token
+3. Or double-click "TrustClaw Connect.url" for one-click Control UI login
+
+Default gateway token: trustclaw-local-default
+Control UI: http://127.0.0.1:19001/#token=trustclaw-local-default
 
 Requires Windows 10+ and Node.js 24+.
 
@@ -142,7 +154,17 @@ function main() {
   runNode(path.join(repoRoot, "scripts/trustclaw-bundle-mac-config.mjs"), {
     TRUSTCLAW_BUNDLE_OUT_DIR: bundleOut,
     TRUSTCLAW_BUNDLE_LOG_TAG: "trustclaw:win:bundle",
+    TRUSTCLAW_PACKAGED_DIST: "1",
   });
+
+  const connectUrl = path.join(bundleOut, "trustclaw-connect.url");
+  if (existsSync(connectUrl)) {
+    cpSync(connectUrl, path.join(stagingRoot, "TrustClaw Connect.url"), { force: true });
+  }
+  const authTxt = path.join(bundleOut, "TRUSTCLAW-AUTH.txt");
+  if (existsSync(authTxt)) {
+    cpSync(authTxt, path.join(stagingRoot, "TRUSTCLAW-AUTH.txt"), { force: true });
+  }
 
   mkdirSync(path.join(stagingRoot, "trustclaw"), { recursive: true });
   cpSync(path.join(repoRoot, "trustclaw/agents"), path.join(stagingRoot, "trustclaw/agents"), {

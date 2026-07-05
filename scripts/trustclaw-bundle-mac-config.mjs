@@ -3,11 +3,25 @@
  * Stage TrustClaw OpenClaw state (config, auth, credentials, workspaces) for macOS DMG.
  * Sources local ~/.openclaw by default — never commit dist/trustclaw-mac-bundle/.
  */
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { TRUSTCLAW_DEFAULT_GATEWAY_PORT } from "./lib/trustclaw-defaults.mjs";
+import {
+  TRUSTCLAW_DEFAULT_GATEWAY_PORT,
+  TRUSTCLAW_DEFAULT_GATEWAY_TOKEN,
+  buildTrustclawDashboardUrl,
+  resolveTrustclawPackagedGatewayToken,
+} from "./lib/trustclaw-defaults.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, "..");
@@ -65,8 +79,7 @@ function readClaudeModelEnv() {
   try {
     const settings = JSON.parse(readFileSync(CLAUDE_SETTINGS_PATH, "utf8"));
     const env = settings?.env ?? {};
-    const baseUrl =
-      typeof env.ANTHROPIC_BASE_URL === "string" ? env.ANTHROPIC_BASE_URL.trim() : "";
+    const baseUrl = typeof env.ANTHROPIC_BASE_URL === "string" ? env.ANTHROPIC_BASE_URL.trim() : "";
     const apiKey =
       (typeof env.ANTHROPIC_AUTH_TOKEN === "string" ? env.ANTHROPIC_AUTH_TOKEN.trim() : "") ||
       (typeof env.ANTHROPIC_API_KEY === "string" ? env.ANTHROPIC_API_KEY.trim() : "");
@@ -107,6 +120,21 @@ function applyClaudeModelService(config) {
   return next;
 }
 
+function applyTrustclawPackagedAuth(config, env = process.env) {
+  if (env.TRUSTCLAW_PACKAGED_DIST !== "1") {
+    return config;
+  }
+  const next = { ...config };
+  next.gateway = {
+    ...next.gateway,
+    auth: {
+      mode: "token",
+      token: resolveTrustclawPackagedGatewayToken(env),
+    },
+  };
+  return next;
+}
+
 function applyTrustclawDefaults(config) {
   const next = { ...config };
   next.gateway = {
@@ -115,10 +143,10 @@ function applyTrustclawDefaults(config) {
     ...next.gateway,
     port: Number(next.gateway?.port ?? TRUSTCLAW_DEFAULT_GATEWAY_PORT),
   };
-  if (!next.gateway.auth?.token) {
+  if (!next.gateway.auth?.token || next.gateway.auth?.mode !== "token") {
     next.gateway.auth = {
       mode: "token",
-      token: next.gateway.auth?.token ?? `trustclaw-${Date.now().toString(36)}`,
+      token: next.gateway.auth?.token ?? TRUSTCLAW_DEFAULT_GATEWAY_TOKEN,
     };
   }
   const plugins = next.plugins ?? {};
@@ -214,6 +242,29 @@ function redactForLog(config) {
   return clone;
 }
 
+function writeTrustclawConnectArtifacts(outDir, config) {
+  const port = Number(config.gateway?.port ?? TRUSTCLAW_DEFAULT_GATEWAY_PORT);
+  const token = config.gateway?.auth?.token ?? TRUSTCLAW_DEFAULT_GATEWAY_TOKEN;
+  const dashboardUrl = buildTrustclawDashboardUrl(port, token);
+  writeFileSync(
+    path.join(outDir, "trustclaw-connect.url"),
+    `[InternetShortcut]\nURL=${dashboardUrl}\n`,
+  );
+  writeFileSync(
+    path.join(outDir, "TRUSTCLAW-AUTH.txt"),
+    `TrustClaw Gateway Auth (packaged default)
+
+Gateway: http://127.0.0.1:${port}/
+Token: ${token}
+
+One-click (token in URL fragment):
+${dashboardUrl}
+
+Double-click trustclaw-connect.url or paste the one-click URL into your browser.
+`,
+  );
+}
+
 function main() {
   mkdirSync(outDir, { recursive: true });
 
@@ -221,8 +272,10 @@ function main() {
   let config = loadJson(sourceConfigPath, {});
   config = applyClaudeModelService(config);
   config = applyTrustclawDefaults(config);
+  config = applyTrustclawPackagedAuth(config);
 
   saveJson(path.join(outDir, "openclaw.json"), config);
+  writeTrustclawConnectArtifacts(outDir, config);
   copyAgentTree(sourceStateDir, outDir);
   copyOptionalStatePaths(sourceStateDir, outDir);
   ensureWorkspaceTemplates(outDir);

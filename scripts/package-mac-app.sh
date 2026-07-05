@@ -320,6 +320,9 @@ if [[ -d "$TRUSTCLAW_BUNDLE_SRC" && -f "$TRUSTCLAW_BUNDLE_SRC/openclaw.json" ]];
   echo "📦 Copying TrustClaw bundled OpenClaw state (config + auth + workspaces)"
   rm -rf "$APP_ROOT/Contents/Resources/trustclaw-bundled-state"
   cp -R "$TRUSTCLAW_BUNDLE_SRC" "$APP_ROOT/Contents/Resources/trustclaw-bundled-state"
+  if [[ -f "$TRUSTCLAW_BUNDLE_SRC/trustclaw-connect.url" ]]; then
+    cp "$TRUSTCLAW_BUNDLE_SRC/trustclaw-connect.url" "$APP_ROOT/Contents/Resources/trustclaw-connect.url"
+  fi
 fi
 
 TRUSTCLAW_AGENTS_SRC="$ROOT_DIR/trustclaw/agents"

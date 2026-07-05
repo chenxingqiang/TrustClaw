@@ -1,0 +1,52 @@
+{
+  "id": "template-starter",
+  "version": "0.0.0-template",
+  "displayName": {
+    "zh-CN": "模板 · 新业务 Agent Pack",
+    "en": "Template · new business agent pack"
+  },
+  "domain": ["your-domain-slug"],
+  "starterQuestions": [
+    {
+      "zh-CN": "请用一句话描述你要查询的数据范围。",
+      "en": "Describe the data scope you want to query in one sentence."
+    },
+    {
+      "zh-CN": "本次对话需要读取哪些本地表？",
+      "en": "Which local tables should this conversation read?"
+    },
+    {
+      "zh-CN": "是否需要写入个人数据？",
+      "en": "Do you need to write personal data?"
+    }
+  ],
+  "openclaw": {
+    "agentId": "template-starter",
+    "persona": "Replace with pack-specific persona id or label."
+  },
+  "tools": {
+    "read": "trustclaw_tra_query"
+  },
+  "prompts": {
+    "system": "prompts/system.v1.md",
+    "text2sql": "prompts/text2sql.v1.md"
+  },
+  "data": {
+    "readTables": ["REPLACE_WITH_YOUR_TABLE"]
+  },
+  "rules": {
+    "engine": "none"
+  },
+  "pipeline": {
+    "stages": ["TEXT2SQL_GEN", "DB_QUERY", "AGENT_DECISION"],
+    "decisionBuilder": "pass-through"
+  },
+  "consent": {
+    "read": { "allowAlways": false },
+    "write": { "allowAlways": false }
+  },
+  "audit": {
+    "businessComponent": "TRA.Agent.TemplateStarter",
+    "decisionComponent": "Agent.TemplateStarterDecision"
+  }
+}

@@ -90,6 +90,7 @@ export {
   migrateLegacyDomainAgentsTable,
   migrateLegacyTraStateFiles,
   normalizeLegacyTraNaming,
+  ensureDomainAgentsPackSchema,
 } from "./legacy-state-migration.js";
 export { recordAgentDomainGrantAudit } from "./agent-domain-grant-audit.js";
 export {

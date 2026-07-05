@@ -63,4 +63,9 @@ export type RunChatOptions = {
 
 export type RunChatResult =
   | { ok: true; context: RuntimeContext }
-  | { ok: false; status: "tra_not_initialized" | "security_blocked"; message: string };
+  | {
+      ok: false;
+      status: "tra_not_initialized" | "security_blocked";
+      message: string;
+      audit_trail_id?: string;
+    };

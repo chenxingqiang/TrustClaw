@@ -13,13 +13,15 @@ TrustClaw 开发指南：**在 OpenClaw 基础上构建 Trust Runtime for Agent 
 
 **Supporting context only（不得单独驱动 loop）：**
 
-| 文档                  | 用途                         |
-| --------------------- | ---------------------------- |
-| `VISION.md`（根目录） | 平台 north star、五平面架构  |
-| `GETTING_STARTED.md`  | 本地启动、端口、Console 布局 |
-| `DECISIONS.md`        | 人审闸门                     |
-| `OPENCLAW_REUSE.md`   | Inherit / Extend / Build     |
-| Root `AGENTS.md`      | 构建、测试、Git 政策         |
+| 文档                                  | 用途                                                     |
+| ------------------------------------- | -------------------------------------------------------- |
+| `VISION.md`（根目录）                 | 平台 north star、五平面架构                              |
+| `GETTING_STARTED.md`                  | 本地启动、端口、Console 布局                             |
+| `DECISIONS.md`                        | 人审闸门                                                 |
+| `OPENCLAW_REUSE.md`                   | Inherit / Extend / Build                                 |
+| `docs/TRA_GOVERNANCE_ARCHITECTURE.md` | MCA 治理架构（监控·把控·问责）                           |
+| `docs/AGENT_PLATFORM.md`              | Agent 平台设计、三环 Loop、层操作模型（CRUD/API 唯一表） |
+| Root `AGENTS.md`                      | 构建、测试、Git 政策                                     |
 
 ## Read order
 
@@ -30,7 +32,9 @@ TrustClaw 开发指南：**在 OpenClaw 基础上构建 Trust Runtime for Agent 
 2. `trustclaw/GETTING_STARTED.md` — dev 启动、端口、TRA Console 布局
 3. `trustclaw/DECISIONS.md` — **逐条审核**；`pending` 项不得实现
 4. `trustclaw/OPENCLAW_REUSE.md` — Inherit / Extend / Build 映射
-5. Root `AGENTS.md` — 构建、测试、Git 政策
+5. `trustclaw/docs/TRA_GOVERNANCE_ARCHITECTURE.md` — 平台 MCA 治理（与合规 Must 配套）
+6. `trustclaw/docs/AGENT_PLATFORM.md` — Business Agent 平台、三环 Loop、层操作模型
+7. Root `AGENTS.md` — 构建、测试、Git 政策
 
 ---
 
@@ -40,25 +44,64 @@ TrustClaw 开发指南：**在 OpenClaw 基础上构建 Trust Runtime for Agent 
 
 - **平台身份**：面向 Agent 的本地可信运行时 + 可审计 Pack；垂直场景以 **Agent Pack** 交付，不是平台硬编码管线
 - **四大原则**：不出域 · 必有据 · 必审计 · Agent 解耦
-- **五平面**（Data / Policy / Agent / Evidence / Operator）：见 `VISION.md`；本文件 Owner map 与平台能力清单与之对齐
+- **五平面**（Data / Policy / Agent / Evidence / Operator）：见 `VISION.md`；MCA 治理环见 `docs/TRA_GOVERNANCE_ARCHITECTURE.md`
 - **合规审查**：个人 TRA 数据、外部标准包、模型推理边界 — 三类数据流均须 **显式同意 + 可回放审计**（见 [合规审查与数据审计](#合规审查与数据审计compliance-review)）
 - **术语**：产品称 **TRA**（Trust Runtime for Agent）；数据面路径 `/api/tra/*`、`local_tra.db`、`trustclaw/tra/`
 
 ---
 
-## OpenClaw-first rule
+## OpenClaw 解耦与最大化利用
 
-**Default:** reuse OpenClaw; build only TRA gaps.
+**原则：并行解耦 + 接缝集成 + 最大化复用。** OpenClaw 是 **执行宿主**（Gateway、Agent runner、Provider、频道、Apps、skills）；TRA 是 **可信运行时**（数据、策略、Pack、审计）。二者 **不合并、不 fork、不互相替代**（D2）。
 
-| Do                                                  | Don't                                  |
-| --------------------------------------------------- | -------------------------------------- |
-| Plugin HTTP routes for `/api/tra/*`, `/api/agent/*` | Standalone Express gateway             |
-| `src/llm/` for Text2SQL + pack-facing LLM calls     | Hardcoded fetch to one vendor          |
-| `node:sqlite` + `src/infra/kysely-sync.ts` patterns | Cloud DB or parallel JSON state stores |
-| Enable plugin via `openclaw gateway run`            | Fork Gateway core in `src/`            |
-| Phase 2: inherit channels in `extensions/*`         | Rebuild Telegram/WhatsApp adapters     |
+### 解耦（TrustClaw 自有）
 
-Full map: `OPENCLAW_REUSE.md`.
+| 层        | 路径                               | 规则                                          |
+| --------- | ---------------------------------- | --------------------------------------------- |
+| TRA 核心  | `trustclaw/**`                     | **无** `openclaw/plugin-sdk` 依赖；可单测     |
+| 业务 Pack | `trustclaw/agents/*`               | 声明式 JSON + prompts；无 `src/agents` 硬编码 |
+| 集成边界  | `extensions/trustclaw-tra/**`      | 唯一 OpenClaw 接线层：HTTP、hooks、tools      |
+| 状态      | `state/local_tra.db`、`tra-audit/` | **不** 与 `openclaw.sqlite` 混表              |
+
+**禁止：** 在 `src/` 写医保/GLP-1 规则；自建第二 Gateway；把 TRA 嵌进 `embedded-agent-runner`；绕过 `before_tool_call` 直读库。
+
+### 最大化利用（OpenClaw 继承）
+
+| 能力                  | 用法                                      | 禁止重复造轮子                 |
+| --------------------- | ----------------------------------------- | ------------------------------ |
+| Gateway + Plugin HTTP | `registerHttpRoute` → `/api/tra/*`        | 独立 Express 侧车              |
+| Provider / 模型路由   | `api.runtime.llm.complete`（Text2SQL 等） | 插件内 raw `fetch` 绑死 OpenAI |
+| Agent 循环            | WS chat、`agents.list`、workspace、skills | 在 Console 复制 Chat UI        |
+| Hooks                 | `before_prompt_build`、`before_tool_call` | core 内嵌 TRA 逻辑             |
+| 频道 / Apps           | `extensions/*`、`apps/*` 原样继承（D5）   | 重写 Telegram/WhatsApp         |
+| Kysely/SQLite 模式    | 对齐 `src/infra/kysely-sync.ts`           | 云 DB / 并行 JSON 状态         |
+
+**Text2SQL LLM 契约：** `trustclaw/runtime/text2sql/generate.ts` 只接受注入的 `Text2SqlLlmCaller`；插件用 `createPluginText2SqlLlm(api)` → `api.runtime.llm.complete`（purpose: `trustclaw.text2sql`）。`openai-llm.ts` 仅测试/离线 harness。
+
+**G7 · WS Chat MCA 与 HTTP 对齐：** OpenClaw Gateway WS chat 经 `trustclaw_tra_query` / `trustclaw_tra_write` 调用 **同一** `runTrustclawChat` 管线；`POST /api/agent/chat` 为并行 HTTP 演示面。Control UI 经 `syncTrustclawRuntimeContext` → Panel D/E。验收：`extensions/trustclaw-tra/src/mca-parity.test.ts`。
+
+### 策略卡片必答（叠加四轮自问）
+
+1. **解耦：** 改动落在 `trustclaw/`、`extensions/trustclaw-tra/` 还是误触 `src/`？
+2. **复用：** 能否用现有 Plugin SDK / runtime.llm / hooks / skills 接缝，而非新造适配器？
+3. **并行：** OpenClaw Agent 与 TRA Pack 边界是否保持？见 `docs/AGENT_PLATFORM.md` § TRA Agent × OpenClaw Agent。
+4. **验收：** `openclaw gateway run` + 插件启用即可；Companion/频道无需改 core。
+
+完整映射：`OPENCLAW_REUSE.md`（Inherit / Extend / Build）。
+
+---
+
+## OpenClaw-first rule（执行摘要）
+
+**Default:** 最大化 OpenClaw；只 Build TRA 缺口；**解耦优先于内嵌**。
+
+| Do                                             | Don't                                 |
+| ---------------------------------------------- | ------------------------------------- |
+| Plugin HTTP + `api.runtime.llm` + hooks/tools  | Standalone Express gateway            |
+| 注入 `Text2SqlLlmCaller`；插件侧 `runtime.llm` | `trustclaw/` 内 import OpenClaw SDK   |
+| `node:sqlite` + Kysely 模式                    | Cloud DB 或并行 JSON 状态             |
+| `openclaw gateway run` + trustclaw-tra         | Fork Gateway / 改 `src/agents` runner |
+| Phase 2: inherit `extensions/*` 频道           | 重建 Telegram/WhatsApp adapters       |
 
 ---
 
@@ -149,6 +192,16 @@ node scripts/run-vitest.mjs trustclaw/tra/compliance-import.test.ts
 ### 3. 规则引擎与用药合规判断 — 实现要求
 
 **原则（D6）**：规则匹配 **确定性**；导入 AST 后 **禁止** TS 硬编码 GLP-1 条款替代 DB 规则。
+
+**G6 · RULE_EVAL 软结论（Monitor + Outcome Contract）：**
+
+| 阶段             | `overall_status` | 审计 `status`             | 管线是否继续                                  |
+| ---------------- | ---------------- | ------------------------- | --------------------------------------------- |
+| `RULE_EVAL`      | `FAIL`           | `FAILURE`（非 `BLOCKED`） | 是 → `AGENT_DECISION`                         |
+| `AGENT_DECISION` | —                | `SUCCESS`                 | `output.rule_outcome`: `soft_fail`            |
+| `AGENT_DECISION` | —                | `SUCCESS`                 | `output.rule_outcome`: `pass` when rules pass |
+
+GLP-1 Pack 用 **citations + 自然语言** 表达未满足项，**不**伪造 PASS。硬阻断仅用于 consent/SQL/未 init（`BLOCKED` / `security_blocked`）。
 
 | 模块       | 路径                                              | 职责                                                                                                               |
 | ---------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
@@ -484,6 +537,11 @@ node scripts/run-vitest.mjs trustclaw/runtime/rules/evaluate.test.ts
 | `ledger_chain`        | Evidence SHA-256 链                                    | Evidence | `verifyEvidenceChain`                                                 |
 | `ui_six_panels`       | Console A–F + Agent 工作台 Chat                        | Operator | 双表面分工见 [TRA 双表面](#tra-双表面runtime-console-vs-agent-工作台) |
 | `domain_agents_api`   | `GET /api/tra/domain-agents`                           | Operator | 逻辑 Agent 目录（D24 全量导入为运营动作）                             |
+| `pack_extension_pts`  | `listAgentPackExtensionPoints()`                       | Agent    | 垂直引擎注册表；新 pack 作者必读                                      |
+| `skill_loop_cmds`     | `listSkillLoopVerifyCommands()`                        | Agent    | OpenClaw skills + pack vitest                                         |
+| `pack_scoped_audit`   | `missingChatPipelineSteps(..., { expectedSteps })`     | Evidence | 按 Pack `pipeline.stages` 探测缺口（G2）                              |
+| `gap_backlog_g1_g5`   | §12 G1–G5                                              | Evidence | 差距闭环 baseline；新轮从 G6+ 选取                                    |
+| `plugin_runtime_llm`  | `createPluginText2SqlLlm(api)`                         | Agent    | Text2SQL 复用 OpenClaw Provider 路由（G11）                           |
 
 **禁止**：把 `DECISIONS.md` 标为 `deferred` 的项（D5/D21/D23 等）当作本轮必做，除非决策状态已更新。
 
@@ -509,6 +567,72 @@ node scripts/run-vitest.mjs trustclaw/runtime/rules/evaluate.test.ts
 
 ---
 
+## Agent Platform 迭代目标（对齐 `docs/AGENT_PLATFORM.md`）
+
+**North star：** TRA Business Agent **垂直开放**；OpenClaw Agent ∥ TRA Pack ∥ 领域目录 **三平面并行**；OpenClaw 通过 `_template` 三契约（Data / Mode / Workflow）**自主构建** Pack，不 fork Gateway core。
+
+**设计权威（只读，不单独开 loop）：**
+
+| 文档                                     | 用途                                                                 |
+| ---------------------------------------- | -------------------------------------------------------------------- |
+| `docs/AGENT_PLATFORM.md`                 | 并行集成、开放平台、三环 Loop、**层操作模型**（CRUD/API/验证唯一表） |
+| `docs/TRA_GOVERNANCE_ARCHITECTURE.md`    | MCA、P0–P8 权限、§12 规范 vs 实现差距                                |
+| `agents/_template/INTEGRATION.md`        | Pack 作者起步                                                        |
+| `runtime/agent-pack/extension-points.ts` | 可注册 pipeline / rule / decision 接缝                               |
+
+**三环嵌套（每轮只推进一环的一个主攻项）：**
+
+| Loop         | 入口问题                              | 产物                              | 验证                                                           |
+| ------------ | ------------------------------------- | --------------------------------- | -------------------------------------------------------------- |
+| **Platform** | 五平面哪一层有生产缺口？              | 本文件笔记 + platform `*.test.ts` | [平台能力清单](#平台能力清单platform-manifest)；governance §11 |
+| **Pack**     | 下一个可运行 `agent.pack.json` 切片？ | `trustclaw/agents/<id>/`          | `run-chat.test.ts`；grant + consent deny                       |
+| **Skill**    | workspace 常驻流程是否错/缺/未测？    | `workspace/*/skills/**/SKILL.md`  | `listSkillLoopVerifyCommands()`                                |
+
+层间 CRUD、API、守卫 — **以 `AGENT_PLATFORM.md` § Layer operations model 为准**；Loop 策略卡片须标明触及的抽象层（P3–P8 或平面）。
+
+### 差距闭环 backlog（`TRA_GOVERNANCE_ARCHITECTURE.md` §12）
+
+每轮 **Perceive** 扫描下表；**Strategy** 从 `open` 项选 **1** 条（或与其阻塞的子项）；闭合后改 `done` 并写「当前轮次笔记」。
+
+| ID  | 规范                                                 | 状态     | 验收                                                                                   |
+| --- | ---------------------------------------------------- | -------- | -------------------------------------------------------------------------------------- |
+| G1  | `tra_not_initialized` 记 `BLOCKED` 审计              | **done** | `run-chat.test.ts` 未 init 路径                                                        |
+| G2  | `missingChatPipelineSteps` 按 Pack `pipeline.stages` | **done** | `read-events.test.ts` + 调用方传 `expectedSteps`                                       |
+| G3  | Pack 声明的 `audit.*Component` 可写入                | **done** | `AuditComponent` 接受 pack 字符串                                                      |
+| G4  | `POST /api/tra/reset` 记 `TRA_RESET`                 | **done** | reset 后 `events.jsonl` 首条 `TRA.Reset`                                               |
+| G5  | Grants 加载/写入 ⊆ `deriveAgentDomainScopes`         | **done** | `agent-domain-grants.test.ts`                                                          |
+| G6  | `RULE_EVAL` FAIL 软结论路径                          | **done** | `RULE_EVAL` `FAILURE` + `AGENT_DECISION` `rule_outcome: soft_fail`；`run-chat.test.ts` |
+| G7  | OpenClaw WS chat 与 HTTP 相同 MCA                    | **done** | `trustclaw_tra_query` → `runTrustclawChat`；`mca-parity.test.ts`                       |
+| G8  | Logic Agent `tra_scopes` 路由接入                    | **open** | D23 deferred                                                                           |
+| G9  | 合规包 `publisher_signature` 验签                    | **open** | D21 deferred                                                                           |
+| G10 | Pack 可变阶段 Panel D 探测与 UI                      | **open** | Console 按 pack stages 渲染闸门                                                        |
+| G11 | Text2SQL 走 OpenClaw `runtime.llm`                   | **done** | `plugin-text2sql-llm.ts`；非 raw fetch                                                 |
+
+**禁止：** 为闭合 G6–G10 而违反 `DECISIONS.md` `deferred`/`pending` 边界。
+
+### 里程碑（缩小 repo ↔ 设计差距）
+
+| 阶段            | 目标                                                             | 完成信号                                                       |
+| --------------- | ---------------------------------------------------------------- | -------------------------------------------------------------- |
+| **2.5（当前）** | Pack schema、注册表、三 bundled packs、层操作模型文档、§12 G1–G5 | 上表 G1–G5 `done`；`GET /api/tra/agent-packs`                  |
+| **3**           | Panel C 选择器、session pack、多 workspace、pack 级 Text2SQL     | Phase 3 行于 `AGENT_PLATFORM.md`；coordinator 测试覆盖换 agent |
+| **4**           | Pack 创作 API/UI、外部签名 Pack                                  | D21 闭合后验签 import                                          |
+
+### Pack / Skill 起步（每轮可选 1 项）
+
+- 新垂直：复制 `agents/_template/` + `workspace/_template/` → 填三契约 → `rules.engine: none` starter path
+- 医药严格路径：对照 `glp1-eligibility` / `nrdl-reimburse` / `compliance-auditor`
+- Skill：dev / nrdl-reimburse / compliance-auditor workspace 均应有 `skills/tra-pack-operations/`（或 pack 专用 skill）
+
+### 迭代选取规则（叠加「执行前闸门」）
+
+1. **先** §12 `open` 中阻塞 MCA 或测试红的项（G6 除外若仅文档争议）
+2. **再** `DECISIONS.md` 开放 approved 项（D24 全量导入、D13 品牌化）
+3. **再** Phase 3 表项（Operator / Pack 体验）
+4. **拒绝** 仅 UI polish 而 G7–G10 或合规 Must 未闭合
+
+---
+
 ### 现有工具索引（按层）
 
 | 层            | 工具 / 路径                                                                             |
@@ -529,7 +653,9 @@ node scripts/run-vitest.mjs trustclaw/runtime/rules/evaluate.test.ts
 - **平台基线（2026-07-05）**：`DECISIONS.md` D1–D24 已落地；`PLAN`/`PRODUCT`/`ROADMAP` 已退役；Loop 只读本文件 + `DECISIONS.md` + `VISION.md`。
 - **R1–R17（2026-07-04→05）**：从 TRA schema 到双表面 Console、合规/consent、领域赋权、domain_agents API；详见 git 历史。
 - **R18（2026-07-05，生产叙事）**：`VISION.md` 与 `AGENTS.md` 去 demo 闭环中心论；改为五平面架构；平台能力清单替代 V1 烟雾脚本；生产就绪闸门替代 Demo DoD。
-- **下一轮建议**：D5 频道；D13 品牌化；D24 全量 `domain_agents` 导入；Pack 管线与平台握手进一步 pack-agnostic 化（代码层，需新 DECISION）。
+- **R20（2026-07-06，OpenClaw 解耦）**：`AGENTS.md` 增 § OpenClaw 解耦与最大化利用；Text2SQL 改 `api.runtime.llm.complete`（G11）；`openai-llm.ts` 降级为测试 harness。
+- **R21（2026-07-06，G6/G7）**：`RULE_EVAL` `FAILURE` + `AGENT_DECISION` `rule_outcome: soft_fail`；HTTP/WS `mca-parity.test.ts`；bridge 透传 `agent_pack_id`。
+- **下一轮建议**：G8–G10；D24 全量 domain_agents 导入；D5 频道出站 `audit_trail_id`。
 
 ---
 
@@ -621,7 +747,6 @@ TrustClaw **刻意拆分**两个产品面，不要混在一个页面里：
 
 **设计原则**
 
-- Runtime Console 是 **console**，不是 Demo；页面标题/包名用 **TRA Runtime Console**，禁止在面向用户的命名里写 Demo。
 - Chat、多 Agent 选择、会话工具调用 → **只在 OpenClaw Control UI / Agent 工作台**；Standalone Console 不嵌 iframe Chat、不复制 Chat UI。
 - Runtime Console 主路径是 **纵向整页滚动**（`body` scroll），各面板自然高度；窄屏双栏折叠为单栏，避免 `overflow: hidden` 把表单裁成「死页」。
 - Runtime Console 顶部展示 **Fail-closed 审计契约** 与 **数据平面 / 审计平面** 双栏地图；D 面板用 **五步管线闸门**（组件名 + 门禁文案 + SUCCESS/BLOCKED 状态色）表达严格审计逻辑；各面板 `subtitle` 说明其在审计链中的角色。
@@ -737,10 +862,10 @@ pnpm openclaw gateway run          # :19001 after trustclaw:setup
 
 ## Phase routing
 
-| Phase     | Scope                                                       |
-| --------- | ----------------------------------------------------------- |
-| **Now**   | 生产级 TRA 平台：五平面、Pack、coordinator、Operator 双表面 |
-| **Next**  | D5 频道、D13 品牌化、D24 目录规模、D21 验签                 |
-| **Later** | D23 多 Agent 意图路由；CLI/package 全量 rename              |
+| Phase     | Scope                                                         |
+| --------- | ------------------------------------------------------------- |
+| **Now**   | Agent Platform 迭代：§12 G6–G10 + Phase 2.5→3（见上文里程碑） |
+| **Next**  | D5 频道、D13 品牌化、D24 目录规模、D21 验签                   |
+| **Later** | D23 多 Agent 意图路由；CLI/package 全量 rename                |
 
 未在 `DECISIONS.md` 标为 `approved` 的项不得静默实现。

@@ -1,7 +1,8 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { getAgentPackRegistry } from "../runtime/agent-pack/index.js";
 import type { AgentDomainScope } from "./agent-domain-scopes.js";
-import { isAgentDomainScope } from "./agent-domain-scopes.js";
+import { deriveAgentDomainScopes, isAgentDomainScope } from "./agent-domain-scopes.js";
 import { resolveTraAuditDir, type TraPathOverrides } from "./paths.js";
 
 type AgentDomainGrantEntry = {
@@ -19,6 +20,18 @@ function resolveGrantPath(auditDir: string): string {
   return path.join(auditDir, "agent-domain-grants.json");
 }
 
+function filterScopesToPackCeiling(
+  packId: string,
+  scopes: readonly AgentDomainScope[],
+): AgentDomainScope[] {
+  const pack = getAgentPackRegistry().get(packId);
+  if (!pack) {
+    return [];
+  }
+  const allowed = new Set(deriveAgentDomainScopes(pack));
+  return scopes.filter((scope) => allowed.has(scope));
+}
+
 function readGrantFile(grantPath: string): AgentDomainGrantFile {
   try {
     const raw = readFileSync(grantPath, "utf8");
@@ -30,7 +43,10 @@ function readGrantFile(grantPath: string): AgentDomainGrantFile {
           continue;
         }
         const scopes = Array.isArray(entry.scopes)
-          ? entry.scopes.filter((scope): scope is AgentDomainScope => isAgentDomainScope(scope))
+          ? filterScopesToPackCeiling(
+              packId,
+              entry.scopes.filter((scope): scope is AgentDomainScope => isAgentDomainScope(scope)),
+            )
           : [];
         grants[packId] = {
           granted_at: typeof entry.granted_at === "number" ? entry.granted_at : Date.now(),
@@ -95,7 +111,7 @@ export function setAgentDomainGrant(
   const file = readGrantFile(grantPath);
   const entry: AgentDomainGrantEntry = {
     granted_at: Math.floor(Date.now() / 1000),
-    scopes: [...new Set(scopes)],
+    scopes: filterScopesToPackCeiling(packId, [...new Set(scopes)]),
   };
   if (entry.scopes.length === 0) {
     delete file.grants[packId];

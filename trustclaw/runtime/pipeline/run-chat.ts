@@ -77,18 +77,33 @@ export async function runTrustclawChat(
 ): Promise<RunChatResult> {
   const pack = resolveAgentPack(input, options);
   const dbOverrides = options.dbPath ? { dbPath: options.dbPath } : {};
+  const auditTrailId = createAuditTrailId();
+  const auditDir = resolveAuditDir(options);
   const snapshot = readGlp1CheckSnapshot(dbOverrides);
   if (!snapshot) {
+    const audit = new AuditRecorder({
+      auditDir,
+      auditTrailId,
+      sessionId: input.session_id,
+    });
+    const gateStep = pack.pipeline.stages[0] ?? "TEXT2SQL_GEN";
+    audit.record({
+      step: gateStep,
+      component: "TRA.Query",
+      input: { user_query: input.message, agent_pack_id: pack.id },
+      output: { reason: "tra_not_initialized" },
+      status: "BLOCKED",
+    });
     return {
       ok: false,
       status: "tra_not_initialized",
       message: "Trust runtime is not initialized. Call POST /api/tra/init first.",
+      audit_trail_id: auditTrailId,
     };
   }
 
-  const auditTrailId = createAuditTrailId();
   const audit = new AuditRecorder({
-    auditDir: resolveAuditDir(options),
+    auditDir,
     auditTrailId,
     sessionId: input.session_id,
   });
@@ -117,6 +132,7 @@ export async function runTrustclawChat(
       ok: false,
       status: "security_blocked",
       message: text2sql.security_error ?? "Text2SQL failed read-only verification.",
+      audit_trail_id: auditTrailId,
     };
   }
 
@@ -165,8 +181,11 @@ export async function runTrustclawChat(
       output: {
         overall_status: ruleMatrix.overall_status,
         evaluated_rule_count: ruleMatrix.evaluated_rules.length,
+        failed_rule_count: ruleMatrix.evaluated_rules.filter((rule) => rule.status === "FAIL")
+          .length,
       },
-      status: "SUCCESS",
+      // FAIL records FAILURE (monitor) but pipeline continues to AGENT_DECISION soft conclusion (G6).
+      status: ruleMatrix.overall_status === "FAIL" ? "FAILURE" : "SUCCESS",
     });
   }
 
@@ -184,6 +203,11 @@ export async function runTrustclawChat(
       response_preview: agentDecision.response.slice(0, 200),
       citation_count: agentDecision.citations.length,
       citations: agentDecision.citations,
+      ...(packIncludesStage(pack, "RULE_EVAL")
+        ? {
+            rule_outcome: ruleMatrix.overall_status === "FAIL" ? "soft_fail" : "pass",
+          }
+        : {}),
     },
     status: "SUCCESS",
   });

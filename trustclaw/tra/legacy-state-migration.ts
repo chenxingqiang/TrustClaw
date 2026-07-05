@@ -35,9 +35,10 @@ function renameIfPresent(stateDir: string, fromName: string, toName: string): bo
 }
 
 /** Rename legacy TRA state files/dirs under ~/.openclaw/state (idempotent). */
-export function migrateLegacyTraStateFiles(
-  stateDir = resolveTraStateDir(),
-): { dbRenamed: boolean; dirsRenamed: string[] } {
+export function migrateLegacyTraStateFiles(stateDir = resolveTraStateDir()): {
+  dbRenamed: boolean;
+  dirsRenamed: string[];
+} {
   const dirsRenamed: string[] = [];
   const dbRenamed = renameIfPresent(stateDir, LEGACY_DB_FILE, CANONICAL_DB_FILE);
   for (const [fromName, toName] of LEGACY_STATE_DIR_RENAMES) {
@@ -129,4 +130,68 @@ export function migrateLegacyDomainAgentsTable(db: DatabaseSync): boolean {
     }
     throw error;
   }
+}
+
+/** Add pack_id to registry-v1 domain_agents rows and backfill from domain slug. */
+export function ensureDomainAgentsPackSchema(db: DatabaseSync): boolean {
+  const tables = db
+    .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'domain_agents'")
+    .all() as Array<{ name: string }>;
+  if (tables.length === 0) {
+    return false;
+  }
+
+  const columns = readColumnNames(db, "domain_agents");
+  let changed = false;
+  if (!columns.includes("pack_id")) {
+    db.exec("ALTER TABLE domain_agents ADD COLUMN pack_id TEXT");
+    changed = true;
+  }
+
+  const backfill = db
+    .prepare(
+      `UPDATE domain_agents
+     SET pack_id = 'tra-' || domain
+     WHERE pack_id IS NULL OR TRIM(pack_id) = ''`,
+    )
+    .run();
+  if ((backfill.changes ?? 0) > 0) {
+    changed = true;
+  }
+
+  const packsTable = db
+    .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'domain_agent_packs'")
+    .all() as Array<{ name: string }>;
+  if (packsTable.length === 0) {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS domain_agent_packs (
+        pack_id         TEXT PRIMARY KEY,
+        display_name_zh TEXT NOT NULL,
+        display_name_en TEXT NOT NULL,
+        domain          TEXT NOT NULL,
+        pack_path       TEXT NOT NULL,
+        version         TEXT NOT NULL DEFAULT '1.0.0',
+        has_write       INTEGER NOT NULL DEFAULT 0,
+        registered_at   TEXT DEFAULT (datetime('now'))
+      );
+    `);
+    db.exec(`
+      INSERT OR IGNORE INTO domain_agent_packs
+        (pack_id, display_name_zh, display_name_en, domain, pack_path, has_write)
+      VALUES
+        ('tra-outpatient', '门诊医保报销', 'Outpatient Insurance Reimbursement', 'outpatient', 'tra-outpatient', 1),
+        ('tra-inpatient', '住院医保结算', 'Inpatient Insurance Settlement', 'inpatient', 'tra-inpatient', 1),
+        ('tra-pharmacy', '定点药店购药', 'Designated Pharmacy Drug Purchase', 'pharmacy', 'tra-pharmacy', 0),
+        ('tra-cross-region', '异地就医报销', 'Cross-Region Medical Reimbursement', 'cross-region', 'tra-cross-region', 0),
+        ('tra-audit', '医保稽核', 'Insurance Audit & Fraud Detection', 'audit', 'tra-audit', 0),
+        ('tra-drg', 'DRG/DIP分组与结算', 'DRG/DIP Grouping & Settlement', 'drg', 'tra-drg', 0),
+        ('tra-maternity', '生育保险', 'Maternity Insurance', 'maternity', 'tra-maternity', 1),
+        ('tra-catastrophic', '大病保险', 'Catastrophic Illness Insurance', 'catastrophic', 'tra-catastrophic', 0),
+        ('tra-medical-assistance', '医疗救助', 'Medical Financial Assistance', 'medical-assistance', 'tra-medical-assistance', 0),
+        ('tra-tcm', '中医药医保报销', 'TCM Insurance Reimbursement', 'tcm', 'tra-tcm', 0);
+    `);
+    changed = true;
+  }
+
+  return changed;
 }

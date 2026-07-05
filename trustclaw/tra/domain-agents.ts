@@ -1,4 +1,5 @@
-import { openTraDatabase } from "./db.js";
+import type { DatabaseSync } from "node:sqlite";
+import { bootstrapTraDatabase } from "./db.js";
 import { resolveTraDbPath, type TraPathOverrides } from "./paths.js";
 
 export type DomainAgentEnabled = "false" | "partial" | "true" | string;
@@ -36,18 +37,13 @@ export type DomainAgentListFilters = {
   domain?: string;
 };
 
-function domainAgentsTableExists(dbPath: string): boolean {
-  const db = openTraDatabase(dbPath);
-  try {
-    const row = db
-      .prepare(
-        "SELECT 1 AS ok FROM sqlite_master WHERE type = 'table' AND name = 'domain_agents' LIMIT 1",
-      )
-      .get() as { ok: number } | undefined;
-    return row?.ok === 1;
-  } finally {
-    db.close();
-  }
+function domainAgentsTableExists(db: DatabaseSync): boolean {
+  const row = db
+    .prepare(
+      "SELECT 1 AS ok FROM sqlite_master WHERE type = 'table' AND name = 'domain_agents' LIMIT 1",
+    )
+    .get() as { ok: number } | undefined;
+  return row?.ok === 1;
 }
 
 function emptySummary(): DomainAgentSummary {
@@ -71,12 +67,12 @@ export function listDomainAgents(
   env: NodeJS.ProcessEnv = process.env,
 ): DomainAgentListResult {
   const dbPath = resolveTraDbPath(overrides, env);
-  if (!domainAgentsTableExists(dbPath)) {
-    return { available: false, agents: [], summary: emptySummary() };
-  }
-
-  const db = openTraDatabase(dbPath);
+  const db = bootstrapTraDatabase(dbPath);
   try {
+    if (!domainAgentsTableExists(db)) {
+      return { available: false, agents: [], summary: emptySummary() };
+    }
+
     const clauses: string[] = [];
     const params: string[] = [];
     if (filters.pack_id?.trim()) {

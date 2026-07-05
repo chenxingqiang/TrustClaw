@@ -42,15 +42,13 @@ function seedDomainAgentsTable(dbPath: string): void {
 }
 
 describe("listDomainAgents", () => {
-  it("returns unavailable when domain_agents table is missing", () => {
+  it("bootstraps registry when domain_agents table is missing", () => {
     const dir = mkdtempSync(path.join(tmpdir(), "trustclaw-domain-agents-"));
     const dbPath = path.join(dir, "local_tra.db");
     try {
-      openTraDatabase(dbPath).close();
       const result = listDomainAgents({ dbPath });
-      expect(result.available).toBe(false);
-      expect(result.agents).toEqual([]);
-      expect(result.summary.total).toBe(0);
+      expect(result.available).toBe(true);
+      expect(result.summary.total).toBe(1000);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

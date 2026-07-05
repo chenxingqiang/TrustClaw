@@ -1,3 +1,4 @@
+export { recordTraResetAudit } from "./operator-events.js";
 export { auditEventMatchesAgentPack, readAgentPackIdFromAuditInput } from "./agent-pack-filter.js";
 export { AuditRecorder } from "./record.js";
 export {
@@ -7,6 +8,7 @@ export {
   missingChatPipelineSteps,
   readAuditEvents,
   type ReadAuditEventsOptions,
+  type MissingChatPipelineStepsOptions,
 } from "./read-events.js";
 export type {
   AuditComponent,

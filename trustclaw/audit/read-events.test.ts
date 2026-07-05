@@ -99,6 +99,11 @@ describe("readAuditEvents", () => {
       "AGENT_DECISION",
       "LEDGER_COMMIT",
     ]);
+    expect(
+      missingChatPipelineSteps(dir, "aud_partial", {
+        expectedSteps: ["TEXT2SQL_GEN", "DB_QUERY", "AGENT_DECISION"],
+      }),
+    ).toEqual(["AGENT_DECISION"]);
     expect(missingChatPipelineSteps(dir, "aud_missing")).toEqual([
       "TEXT2SQL_GEN",
       "DB_QUERY",

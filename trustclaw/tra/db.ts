@@ -5,6 +5,7 @@ import {
   migrateLegacyDomainAgentsTable,
   migrateLegacyTraStateFiles,
   normalizeLegacyTraNaming,
+  ensureDomainAgentsPackSchema,
 } from "./legacy-state-migration.js";
 import {
   TRA_COMPLIANCE_STANDARDS_SQL,
@@ -96,6 +97,7 @@ function seedDomainAgentsRegistryIfEmpty(db: DatabaseSync): void {
   migrateLegacyDomainAgentsTable(db);
   const existing = countDomainAgentsTableRows(db);
   if (existing >= DOMAIN_AGENTS_FULL_REGISTRY_TARGET) {
+    ensureDomainAgentsPackSchema(db);
     return;
   }
   const replacePartial = existing > 0;
@@ -106,6 +108,7 @@ function seedDomainAgentsRegistryIfEmpty(db: DatabaseSync): void {
   const seedSql = readFileSync(TRA_DOMAIN_AGENTS_REGISTRY_SQL, "utf8");
   db.exec(normalizeLegacyTraNaming(seedSql));
   migrateLegacyDomainAgentsTable(db);
+  ensureDomainAgentsPackSchema(db);
 }
 
 export function bootstrapTraDatabase(dbPath = resolveTraDbPath()): DatabaseSync {

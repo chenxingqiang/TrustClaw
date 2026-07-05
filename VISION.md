@@ -2,7 +2,7 @@
 
 TrustClaw is a **Trust Runtime for Agent (TRA)** — a local-first platform where personal data, subscribed reference datasets, and auditable agents collaborate under explicit consent and immutable evidence.
 
-Business agents (clinical eligibility, reimbursement, compliance review, and others) are **packs on the runtime**, not the platform identity. The runtime stays vertical-agnostic; vertical logic ships as declarative Agent Packs and imported rule sets.
+Business agents (clinical eligibility, reimbursement, compliance review, and others) are **packs on the runtime**, not the platform identity. The runtime stays vertical-agnostic; vertical logic ships as declarative Agent Packs and imported rule sets. **Healthcare bundles are the first strict validation instance**; pack templates and schema live under `trustclaw/agents/_template/` and `_schema/`.
 
 **Core principles**
 
@@ -34,6 +34,7 @@ TrustClaw is forked from [OpenClaw](https://github.com/openclaw/openclaw). We re
 **Docs**
 
 - **Product loops (canonical):** `trustclaw/AGENTS.md`
+- **Governance (MCA):** `trustclaw/docs/TRA_GOVERNANCE_ARCHITECTURE.md`
 - Getting started: `trustclaw/GETTING_STARTED.md`
 - Decisions (审核): `trustclaw/DECISIONS.md`
 - OpenClaw reuse: `trustclaw/OPENCLAW_REUSE.md`

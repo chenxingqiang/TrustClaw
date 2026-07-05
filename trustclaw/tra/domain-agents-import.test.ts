@@ -4,6 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { bootstrapTraDatabase } from "./db.js";
 import { countDomainAgents, importDomainAgentsRegistrySql } from "./domain-agents-import.js";
+import { ensureDomainAgentsPackSchema } from "./legacy-state-migration.js";
 import {
   migrateLegacyDomainAgentsTable,
   migrateLegacyTraStateFiles,
@@ -112,6 +113,30 @@ describe("domain agents registry seed", () => {
         .prepare("SELECT tra_scopes FROM domain_agents WHERE agent_id = ?")
         .get("x-1") as { tra_scopes: string };
       expect(row.tra_scopes).toBe("tra.read");
+      db.close();
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("backfills pack_id for registry-v1 domain_agents rows", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "trustclaw-domain-pack-"));
+    const dbPath = path.join(dir, "local_tra.db");
+    try {
+      const db = bootstrapTraDatabase(dbPath);
+      db.exec(`
+        CREATE TABLE domain_agents__v1 AS
+        SELECT agent_id, agent_name, domain, subdomain, region, insurance_type, enabled,
+               tra_scopes, tra_write, registered_at, pack_version
+        FROM domain_agents;
+        DROP TABLE domain_agents;
+        ALTER TABLE domain_agents__v1 RENAME TO domain_agents;
+      `);
+      ensureDomainAgentsPackSchema(db);
+      const row = db
+        .prepare("SELECT pack_id FROM domain_agents WHERE agent_id = ?")
+        .get("op-001") as { pack_id: string };
+      expect(row.pack_id).toBe("tra-outpatient");
       db.close();
     } finally {
       rmSync(dir, { recursive: true, force: true });

@@ -6,6 +6,7 @@ import {
   migrateLegacyDomainAgentsTable,
   migrateLegacyTraStateFiles,
   normalizeLegacyTraNaming,
+  ensureDomainAgentsPackSchema,
 } from "./legacy-state-migration.js";
 import {
   TRA_DOMAIN_AGENTS_MIGRATION_SQL,
@@ -55,6 +56,7 @@ export function importDomainAgentsRegistrySql(
   }
   db.exec(normalizeLegacyTraNaming(normalized));
   migrateLegacyDomainAgentsTable(db);
+  ensureDomainAgentsPackSchema(db);
   return countDomainAgents(db);
 }
 

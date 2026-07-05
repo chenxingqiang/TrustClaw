@@ -66,6 +66,7 @@ export function discoverAgentPackFiles(agentsDir: string): string[] {
   const entries = readdirSync(agentsDir, { withFileTypes: true });
   const packFiles: string[] = [];
   for (const entry of entries) {
+    // Skip `_schema`, `_template`, and other non-runtime pack scaffolding.
     if (entry.name.startsWith("_")) {
       continue;
     }

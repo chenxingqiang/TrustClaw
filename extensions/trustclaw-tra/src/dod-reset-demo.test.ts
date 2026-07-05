@@ -59,8 +59,16 @@ describe("dod_reset_demo (Task 503)", () => {
       if (!pass1a.ok || !pass1b.ok) {
         return;
       }
-      expect(missingChatPipelineSteps(auditDir, pass1a.context.audit_trail_id)).toEqual([]);
-      expect(missingChatPipelineSteps(auditDir, pass1b.context.audit_trail_id)).toEqual([]);
+      expect(
+        missingChatPipelineSteps(auditDir, pass1a.context.audit_trail_id, {
+          expectedSteps: glp1Pack.pipeline.stages,
+        }),
+      ).toEqual([]);
+      expect(
+        missingChatPipelineSteps(auditDir, pass1b.context.audit_trail_id, {
+          expectedSteps: glp1Pack.pipeline.stages,
+        }),
+      ).toEqual([]);
       expect(pass1a.context.evidence_ledger_receipt?.block_height).toBe(0);
       expect(pass1b.context.evidence_ledger_receipt?.block_height).toBe(1);
       expect(verifyEvidenceChain(readEvidenceReceipts(evidenceDir))).toEqual({ ok: true });
@@ -97,7 +105,11 @@ describe("dod_reset_demo (Task 503)", () => {
       if (!pass2.ok) {
         return;
       }
-      expect(missingChatPipelineSteps(auditDir, pass2.context.audit_trail_id)).toEqual([]);
+      expect(
+        missingChatPipelineSteps(auditDir, pass2.context.audit_trail_id, {
+          expectedSteps: glp1Pack.pipeline.stages,
+        }),
+      ).toEqual([]);
       expect(pass2.context.evidence_ledger_receipt?.block_height).toBe(0);
       expect(pass2.context.evidence_ledger_receipt?.previous_evidence_hash).toBeNull();
       expect(verifyEvidenceChain(readEvidenceReceipts(evidenceDir))).toEqual({ ok: true });

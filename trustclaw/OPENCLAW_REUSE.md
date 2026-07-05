@@ -1,7 +1,22 @@
 # TrustClaw × OpenClaw 复用映射
 
-目标：**最大化利用 OpenClaw 基础框架**，TrustClaw 只构建 **Trust Runtime for Agent (TRA)** 差异化能力（可信数据平面、审计、存证、Agent Pack 管线）。  
-继承 OpenClaw 的 **Gateway、多 Provider、多 Channel、Companion Apps、Control UI、Plugin SDK**。
+目标：**与 OpenClaw 解耦并行，同时最大化利用其基础框架**。TrustClaw 只构建 **Trust Runtime for Agent (TRA)** 差异化能力；OpenClaw 提供 Gateway、Provider、频道、Apps、Agent runner、skills。
+
+**解耦边界：** `trustclaw/**` 无 OpenClaw SDK 依赖；集成仅在 `extensions/trustclaw-tra/**`（HTTP、hooks、tools、`api.runtime.llm`）。
+
+**Business Agent 垂直开放：** 平台契约（`agent.pack.json` 数据 / 模式 / 工作流三模板）与 OpenClaw 宿主绑定是稳定的；**医药 bundled packs 是首个严格验证实例**，不是架构上限。模版入口：`trustclaw/agents/_template/`、`trustclaw/docs/AGENT_PLATFORM.md` § Open Agent platform。
+
+## 解耦 vs 复用（决策表）
+
+| 问题              | 解耦（Build / 自有）         | 复用（Inherit / Extend）                   |
+| ----------------- | ---------------------------- | ------------------------------------------ |
+| 谁跑 LLM？        | —                            | OpenClaw `agents.list` + `api.runtime.llm` |
+| 个人健康数据？    | `trustclaw/tra/` SQLite      | —                                          |
+| 业务规则？        | Pack + SQLite AST            | —                                          |
+| HTTP API？        | 处理器在插件；路由在 Gateway | `plugins-http`                             |
+| Text2SQL 调模型？ | `generate.ts` 注入接口       | 插件 `runtime.llm.complete`                |
+| 频道出站？        | Pack 产出结论                | `extensions/telegram` 等                   |
+| 审计/账本？       | `trustclaw/audit`、`ledger`  | diagnostic-events 思路参考                 |
 
 ## 三层策略
 
@@ -13,30 +28,30 @@
 
 ## 系统级映射
 
-| TRA 平面           | TrustClaw 模块                          | OpenClaw 复用点                                         | 策略           |
-| ------------------ | --------------------------------------- | ------------------------------------------------------- | -------------- |
-| **Data**           | `trustclaw/tra/`                        | `src/infra/kysely-sync.ts`、`node:sqlite` 模式          | Extend         |
-| **Reference data** | `trustclaw/tra/seeds/`、`nrdl_*` 表     | 无（健康域专有）                                        | Build          |
-| **Agent**          | `trustclaw/runtime/pipeline/`           | `src/llm/`、`src/agents/embedded-agent-runner/`（参考） | Extend + Build |
-| **Evidence**       | `trustclaw/audit/`、`trustclaw/ledger/` | `diagnostic-events` / 哈希存储思路                      | Extend + Build |
-| **Agent Packs**    | `trustclaw/agents/*/`                   | Prompt 管理可借鉴 `skills/` 模式                        | Build          |
-| **Operator**       | `trustclaw/ui/`                         | Control UI 壳、`app-gateway.ts`                         | Build / Extend |
-| **HTTP API**       | `extensions/trustclaw-tra/src/`         | `plugins-http.ts`                                       | Extend         |
+| TRA 平面           | TrustClaw 模块                          | OpenClaw 复用点                                              | 策略           |
+| ------------------ | --------------------------------------- | ------------------------------------------------------------ | -------------- |
+| **Data**           | `trustclaw/tra/`                        | `src/infra/kysely-sync.ts`、`node:sqlite` 模式               | Extend         |
+| **Reference data** | `trustclaw/tra/seeds/`、`nrdl_*` 表     | 无（健康域专有）                                             | Build          |
+| **Agent**          | `trustclaw/runtime/pipeline/`           | `api.runtime.llm.complete`（插件 Text2SQL）；runner 模式参考 | Extend + Build |
+| **Evidence**       | `trustclaw/audit/`、`trustclaw/ledger/` | `diagnostic-events` / 哈希存储思路                           | Extend + Build |
+| **Agent Packs**    | `trustclaw/agents/*/`                   | Prompt 管理可借鉴 `skills/` 模式                             | Build          |
+| **Operator**       | `trustclaw/ui/`                         | Control UI 壳、`app-gateway.ts`                              | Build / Extend |
+| **HTTP API**       | `extensions/trustclaw-tra/src/`         | `plugins-http.ts`                                            | Extend         |
 
 ## 关键 OpenClaw 路径（实现时必读）
 
-| 能力              | 路径                                          | TrustClaw 用途                    |
-| ----------------- | --------------------------------------------- | --------------------------------- |
-| Gateway HTTP 宿主 | `src/gateway/server-http.ts`                  | 挂载 `/api/tra/*`、`/api/agent/*` |
-| Plugin HTTP 路由  | `src/gateway/server/plugins-http.ts`          | `registerHttpRoute` 处理器        |
-| Gateway WS Chat   | `src/gateway/server-methods/chat.ts`          | 频道回复；经 pack 工具链          |
-| Control UI 网关桥 | `ui/src/ui/app-gateway.ts`                    | 实时审计事件                      |
-| LLM Provider 栈   | `src/llm/`                                    | Text2SQL、Pack 决策生成           |
-| 共享 State DB     | `src/state/openclaw-state-db.ts`              | 可选审计镜像；非 TRA 个人数据     |
-| Plugin SDK        | `src/plugin-sdk/`                             | 插件注册、runtime helper          |
-| 多平台 Apps       | `apps/`                                       | **原样继承**                      |
-| 频道              | `extensions/telegram`、`whatsapp`、`discord`… | **原样继承** — 经 pack 输出结论   |
-| 配置              | `openclaw.json`                               | 插件段 `plugins.trustclaw-tra`    |
+| 能力              | 路径                                          | TrustClaw 用途                            |
+| ----------------- | --------------------------------------------- | ----------------------------------------- |
+| Gateway HTTP 宿主 | `src/gateway/server-http.ts`                  | 挂载 `/api/tra/*`、`/api/agent/*`         |
+| Plugin HTTP 路由  | `src/gateway/server/plugins-http.ts`          | `registerHttpRoute` 处理器                |
+| Gateway WS Chat   | `src/gateway/server-methods/chat.ts`          | 频道回复；经 pack 工具链                  |
+| Control UI 网关桥 | `ui/src/ui/app-gateway.ts`                    | 实时审计事件                              |
+| LLM Provider 栈   | `src/llm/` + `api.runtime.llm`                | Text2SQL 经插件 `createPluginText2SqlLlm` |
+| 共享 State DB     | `src/state/openclaw-state-db.ts`              | 可选审计镜像；非 TRA 个人数据             |
+| Plugin SDK        | `src/plugin-sdk/`                             | 插件注册、runtime helper                  |
+| 多平台 Apps       | `apps/`                                       | **原样继承**                              |
+| 频道              | `extensions/telegram`、`whatsapp`、`discord`… | **原样继承** — 经 pack 输出结论           |
+| 配置              | `openclaw.json`                               | 插件段 `plugins.trustclaw-tra`            |
 
 ## 平台适配继承（Phase 2+）
 
@@ -82,6 +97,7 @@ trustclaw/                # 可单测的核心库（无 OpenClaw 深依赖）
 ## 验收：复用是否到位
 
 - [ ] TRA API 经 **Plugin HTTP** 暴露，非 ad-hoc Express 侧车
+- [ ] Text2SQL / 插件 LLM 走 **`api.runtime.llm.complete`**，非插件内 raw OpenAI fetch
 - [ ] LLM 调用走 **现有 Provider 配置**，非硬编码 API Key
 - [ ] 单命令启动：`openclaw gateway run` + 启用 trustclaw-tra 插件
 - [ ] 能在 **不重写频道** 前提下从 Telegram 触发同一 Pack 管线

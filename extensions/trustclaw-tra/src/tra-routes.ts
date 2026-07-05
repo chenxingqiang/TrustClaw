@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { z } from "zod";
-import { clearAuditEvents } from "../../../trustclaw/audit/index.js";
+import { clearAuditEvents, recordTraResetAudit } from "../../../trustclaw/audit/index.js";
 import { clearEvidenceLedger } from "../../../trustclaw/ledger/index.js";
 import { clearAgentDomainGrants } from "../../../trustclaw/tra/agent-domain-grants.js";
 import { resolveAgentBrowseTables } from "../../../trustclaw/tra/agent-domain-scopes.js";
@@ -104,8 +104,11 @@ export function createTraResetHandler(pluginConfig: TrustclawPluginConfig | unde
       clearAgentDomainGrants({ dbPath: paths.dbPath, auditDir: paths.auditDir });
       clearAuditEvents(paths.auditDir);
       clearEvidenceLedger(paths.evidenceDir);
+      const resetTrailId = recordTraResetAudit(paths.auditDir);
+      sendJson(res, 200, { ...result, reset_audit_trail_id: resetTrailId });
+      return true;
     }
-    sendJson(res, result.status === "success" ? 200 : 500, result);
+    sendJson(res, 500, result);
     return true;
   };
 }

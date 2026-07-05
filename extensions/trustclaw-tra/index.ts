@@ -1,5 +1,4 @@
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
-import { createOpenAiText2SqlLlm } from "../../trustclaw/runtime/text2sql/openai-llm.js";
 import type { TrustclawPluginConfig } from "../../trustclaw/tra/config.js";
 import {
   TRA_SEED_GLP1_AST_V2_JSON,
@@ -29,6 +28,7 @@ import {
 } from "./src/domain-agent-routes.js";
 import { methodIs, sendJson } from "./src/http-utils.js";
 import { createTraLedgerHandler } from "./src/ledger-routes.js";
+import { createPluginText2SqlLlm } from "./src/plugin-text2sql-llm.js";
 import {
   createReferencePreviewHandler,
   createReferenceStatusHandler,
@@ -77,7 +77,7 @@ export default definePluginEntry({
   description: "Trust Runtime for Agent APIs for TrustClaw",
   register(api) {
     const cfg = readPluginConfig(api.pluginConfig);
-    const text2sqlLlm = createOpenAiText2SqlLlm();
+    const text2sqlLlm = createPluginText2SqlLlm(api);
     api.registerHttpRoute({
       path: "/api/tra/init",
       auth: "plugin",

@@ -3,9 +3,11 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { missingChatPipelineSteps } from "../../audit/index.js";
+import { readAuditEvents } from "../../audit/read-events.js";
 import { readEvidenceReceipts, verifyEvidenceChain } from "../../ledger/index.js";
 import { initializeTra } from "../../tra/init.js";
 import { TRA_INIT_DEFAULTS } from "../../tra/types.js";
+import { getAgentPackRegistry } from "../agent-pack/index.js";
 import { buildGlp1Decision } from "./glp1-decision.js";
 import { runTrustclawChat } from "./run-chat.js";
 
@@ -100,8 +102,11 @@ describe("trustclaw/runtime/pipeline", () => {
         .trim()
         .split("\n");
       expect(auditLines.length).toBeGreaterThanOrEqual(5);
+      const pack = getAgentPackRegistry().get(result.context.agent_pack_id);
       expect(
-        missingChatPipelineSteps(path.join(dir, "tra-audit"), result.context.audit_trail_id),
+        missingChatPipelineSteps(path.join(dir, "tra-audit"), result.context.audit_trail_id, {
+          expectedSteps: pack?.pipeline.stages,
+        }),
       ).toEqual([]);
       const trailIds = auditLines.map(
         (line) => (JSON.parse(line) as { audit_trail_id: string }).audit_trail_id,
@@ -175,13 +180,68 @@ describe("trustclaw/runtime/pipeline", () => {
     try {
       const result = await runTrustclawChat(
         { session_id: "sess_x", message: "hello" },
-        { dbPath, llm: async () => "SELECT 1" },
+        { dbPath, auditDir: path.join(dir, "tra-audit"), llm: async () => "SELECT 1" },
       );
       expect(result.ok).toBe(false);
       if (result.ok) {
         return;
       }
       expect(result.status).toBe("tra_not_initialized");
+      expect(result.audit_trail_id).toMatch(/^aud_/);
+      const auditLines = readFileSync(path.join(dir, "tra-audit", "events.jsonl"), "utf8")
+        .trim()
+        .split("\n");
+      expect(auditLines).toHaveLength(1);
+      const blocked = JSON.parse(auditLines[0]!) as { status: string; output: { reason?: string } };
+      expect(blocked.status).toBe("BLOCKED");
+      expect(blocked.output.reason).toBe("tra_not_initialized");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("records RULE_EVAL FAILURE and soft-fail AGENT_DECISION when rules fail (G6)", async () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "trustclaw-pipeline-rule-fail-"));
+    const dbPath = path.join(dir, "local_tra.db");
+    const auditDir = path.join(dir, "tra-audit");
+    try {
+      initializeTra(
+        {
+          ...TRA_INIT_DEFAULTS,
+          weight: 85,
+          height: 170,
+          hba1c: 5.4,
+          hasType2Diabetes: true,
+        },
+        { dbPath },
+      );
+
+      const result = await runTrustclawChat(
+        { session_id: "sess_rule_fail", message: "我可以用司美格鲁肽吗？" },
+        {
+          dbPath,
+          auditDir,
+          evidenceDir: path.join(dir, "tra-evidence"),
+          llm: async () =>
+            "SELECT * FROM v_glp1_nrdl_check_snapshot WHERE user_id = 'local_user' LIMIT 1",
+        },
+      );
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) {
+        return;
+      }
+
+      const events = readAuditEvents({ auditDir, limit: 20 }).filter(
+        (event) => event.audit_trail_id === result.context.audit_trail_id,
+      );
+      const ruleEval = events.find((event) => event.step === "RULE_EVAL");
+      const decision = events.find((event) => event.step === "AGENT_DECISION");
+      expect(ruleEval?.status).toBe("FAILURE");
+      expect(decision?.status).toBe("SUCCESS");
+      expect(decision?.output.rule_outcome).toBe("soft_fail");
+      expect(result.context.pipeline_stages.rule_evaluation.overall_status).toBe("FAIL");
+      expect(result.context.pipeline_stages.agent_decision.citations.length).toBeGreaterThan(0);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

@@ -87,6 +87,7 @@ export function createAgentChatHandler(
         status: "error",
         code: result.status,
         message: result.message,
+        ...(result.audit_trail_id ? { audit_trail_id: result.audit_trail_id } : {}),
       });
       return true;
     }

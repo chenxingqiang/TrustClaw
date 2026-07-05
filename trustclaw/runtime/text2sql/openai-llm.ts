@@ -5,8 +5,9 @@ type OpenAiChatResponse = {
 };
 
 /**
- * Minimal OpenAI-compatible Text2SQL caller for TrustClaw plugin HTTP routes.
- * Requires OPENAI_API_KEY (or explicit apiKey) — no silent SQL fallback.
+ * Minimal OpenAI-compatible Text2SQL caller for **unit tests and offline harnesses only**.
+ * Production plugin wiring uses `extensions/trustclaw-tra/src/plugin-text2sql-llm.ts`
+ * (`api.runtime.llm.complete` → OpenClaw provider routing).
  */
 export function createOpenAiText2SqlLlm(options?: {
   apiKey?: string;
@@ -15,10 +16,11 @@ export function createOpenAiText2SqlLlm(options?: {
 }): Text2SqlLlmCaller {
   const apiKey = options?.apiKey ?? process.env.OPENAI_API_KEY?.trim();
   const model = options?.model ?? process.env.TRUSTCLAW_TEXT2SQL_MODEL?.trim() ?? "gpt-4.1-mini";
-  const baseUrl = (options?.baseUrl ?? process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1").replace(
-    /\/$/,
-    "",
-  );
+  const baseUrl = (
+    options?.baseUrl ??
+    process.env.OPENAI_BASE_URL ??
+    "https://api.openai.com/v1"
+  ).replace(/\/$/, "");
 
   return async (prompt: string) => {
     if (!apiKey) {

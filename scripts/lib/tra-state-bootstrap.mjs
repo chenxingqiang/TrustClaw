@@ -7,12 +7,18 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 
-const stateDir = process.env.OPENCLAW_STATE_DIR ?? path.join(process.env.HOME ?? "/tmp", ".openclaw");
-const appRoot = process.env.TRUSTCLAW_APP_ROOT ?? path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
+const stateDir =
+  process.env.OPENCLAW_STATE_DIR ?? path.join(process.env.HOME ?? "/tmp", ".openclaw");
+const appRoot =
+  process.env.TRUSTCLAW_APP_ROOT ??
+  path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
 const trustclawPackageRoot = existsSync(path.join(appRoot, "trustclaw", "tra"))
   ? path.join(appRoot, "trustclaw")
   : appRoot;
-const registrySql = path.join(trustclawPackageRoot, "tra/seeds/domain-agents/domain_agents_registry.sql");
+const registrySql = path.join(
+  trustclawPackageRoot,
+  "tra/seeds/domain-agents/domain_agents_registry.sql",
+);
 
 function normalizeLegacyTraNaming(content) {
   return content
@@ -68,6 +74,21 @@ function countDomainAgents(db) {
   return db.prepare("SELECT COUNT(*) AS count FROM domain_agents").get().count ?? 0;
 }
 
+function ensurePackIdColumn(db) {
+  const columns = db
+    .prepare("PRAGMA table_info(domain_agents)")
+    .all()
+    .map((row) => row.name);
+  if (!columns.includes("pack_id")) {
+    db.exec("ALTER TABLE domain_agents ADD COLUMN pack_id TEXT");
+  }
+  db.prepare(
+    `UPDATE domain_agents
+     SET pack_id = 'tra-' || domain
+     WHERE pack_id IS NULL OR TRIM(pack_id) = ''`,
+  ).run();
+}
+
 function main() {
   const statePath = path.join(stateDir, "state");
   mkdirSync(statePath, { recursive: true });
@@ -99,6 +120,7 @@ function main() {
   db.exec("PRAGMA foreign_keys = ON;");
   const existing = countDomainAgents(db);
   if (existing >= 1000) {
+    ensurePackIdColumn(db);
     console.log(`[trustclaw:bootstrap] domain_agents already has ${existing} rows`);
     db.close();
     return;
@@ -108,6 +130,7 @@ function main() {
     db.exec("DROP TABLE IF EXISTS domain_agent_packs");
   }
   db.exec(normalizeLegacyTraNaming(readFileSync(registrySql, "utf8")));
+  ensurePackIdColumn(db);
   const total = countDomainAgents(db);
   db.close();
   console.log(

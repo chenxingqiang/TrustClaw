@@ -70,11 +70,21 @@ export const CHAT_PIPELINE_AUDIT_STEPS = [
   "LEDGER_COMMIT",
 ] as const satisfies readonly AuditStepCode[];
 
+export type MissingChatPipelineStepsOptions = {
+  /** Pack-declared `pipeline.stages`; defaults to full five-step chat pipeline. */
+  expectedSteps?: readonly AuditStepCode[];
+};
+
 /** Steps missing from a chat audit trail (Task 301 / DoD auditable gate). */
-export function missingChatPipelineSteps(auditDir: string, auditTrailId: string): AuditStepCode[] {
+export function missingChatPipelineSteps(
+  auditDir: string,
+  auditTrailId: string,
+  options?: MissingChatPipelineStepsOptions,
+): AuditStepCode[] {
+  const expectedSteps = options?.expectedSteps ?? CHAT_PIPELINE_AUDIT_STEPS;
   const events = readAuditEvents({ auditDir, limit: 200 }).filter(
     (event) => event.audit_trail_id === auditTrailId,
   );
   const present = new Set(events.map((event) => event.step));
-  return CHAT_PIPELINE_AUDIT_STEPS.filter((step) => !present.has(step));
+  return expectedSteps.filter((step) => !present.has(step));
 }

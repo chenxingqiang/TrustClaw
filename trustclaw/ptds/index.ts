@@ -70,6 +70,14 @@ export {
   setAgentDomainGrant,
 } from "./agent-domain-grants.js";
 export { deriveAgentDomainScopes, type AgentDomainScope } from "./agent-domain-scopes.js";
+export {
+  listDomainAgents,
+  type DomainAgentEnabled,
+  type DomainAgentListFilters,
+  type DomainAgentListResult,
+  type DomainAgentRow,
+  type DomainAgentSummary,
+} from "./domain-agents.js";
 export { recordAgentDomainGrantAudit } from "./agent-domain-grant-audit.js";
 export {
   clearPtdsDataAccessGrants,

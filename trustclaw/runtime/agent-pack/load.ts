@@ -66,7 +66,11 @@ export function discoverAgentPackFiles(agentsDir: string): string[] {
   const entries = readdirSync(agentsDir, { withFileTypes: true });
   const packFiles: string[] = [];
   for (const entry of entries) {
-    if (!entry.isDirectory() || entry.name.startsWith("_")) {
+    if (entry.name.startsWith("_")) {
+      continue;
+    }
+    // Symlinked pack dirs (e.g. merged agents dir) are not isDirectory() but still ship agent.pack.json.
+    if (!entry.isDirectory() && !entry.isSymbolicLink()) {
       continue;
     }
     const packFile = path.join(agentsDir, entry.name, PACK_FILENAME);

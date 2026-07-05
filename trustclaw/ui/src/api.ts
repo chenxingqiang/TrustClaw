@@ -467,6 +467,54 @@ export interface AgentGrantsResponse {
   message?: string;
 }
 
+export interface DomainAgentRow {
+  agent_id: string;
+  agent_name: string;
+  domain: string;
+  subdomain: string | null;
+  region: string | null;
+  insurance_type: string | null;
+  enabled: string;
+  ptds_scopes: string | null;
+  ptds_write: number | null;
+  pack_id: string | null;
+  pack_version: string | null;
+  registered_at: string | null;
+}
+
+export interface DomainAgentsResponse {
+  status: "success" | "error";
+  available: boolean;
+  agents: DomainAgentRow[];
+  summary: {
+    total: number;
+    by_enabled: Record<string, number>;
+    by_pack: Record<string, number>;
+  };
+  message?: string;
+}
+
+export type DomainAgentsQuery = {
+  pack_id?: string;
+  enabled?: string;
+  domain?: string;
+};
+
+/** Serialize domain-agents registry URL with optional filters. */
+export function buildDomainAgentsUrl(base: string, query?: DomainAgentsQuery): string {
+  const url = new URL("/api/ptds/domain-agents", base);
+  if (query?.pack_id?.trim()) {
+    url.searchParams.set("pack_id", query.pack_id.trim());
+  }
+  if (query?.enabled?.trim()) {
+    url.searchParams.set("enabled", query.enabled.trim());
+  }
+  if (query?.domain?.trim()) {
+    url.searchParams.set("domain", query.domain.trim());
+  }
+  return url.pathname + url.search;
+}
+
 export interface PutAgentGrantRequest {
   session_id: string;
   agent_pack_id: string;
@@ -561,6 +609,7 @@ export interface TrustclawApiClient {
   browseSubscriptions(agentPackId?: string): Promise<PtdsBrowseSubscriptionsResponse>;
   browse(table: string, limit?: number, agentPackId?: string): Promise<PtdsBrowseResponse>;
   agentGrants(): Promise<AgentGrantsResponse>;
+  domainAgents(query?: DomainAgentsQuery): Promise<DomainAgentsResponse>;
   putAgentGrant(body: PutAgentGrantRequest): Promise<PutAgentGrantResponse>;
   chat(body: AgentChatRequest): Promise<AgentChatResponse>;
   auditEvents(
@@ -643,6 +692,9 @@ export function createApiClient(
     },
     agentGrants() {
       return callJson(fetchImpl, baseUrl, "/api/ptds/agent-grants");
+    },
+    domainAgents(query) {
+      return callJson(fetchImpl, baseUrl, buildDomainAgentsUrl("http://x", query));
     },
     putAgentGrant(body) {
       return callJson(fetchImpl, baseUrl, "/api/ptds/agent-grants", {

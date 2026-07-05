@@ -1,6 +1,7 @@
 /** Shared Panel B/D/E/F domain-agent context (decoupled from PTDS runtime). */
 
 const STORAGE_KEY = "trustclaw.panelAgentPackId";
+const STORAGE_KEY_LOGICAL_AGENT = "trustclaw.panelLogicalAgentId";
 const DEFAULT_PACK_ID = "glp1-eligibility";
 
 export function readPanelAgentPackId(): string {
@@ -14,6 +15,22 @@ export function readPanelAgentPackId(): string {
 export function writePanelAgentPackId(packId: string): void {
   try {
     sessionStorage.setItem(STORAGE_KEY, packId.trim());
+  } catch {
+    // ignore private mode
+  }
+}
+
+export function readPanelLogicalAgentId(): string {
+  try {
+    return sessionStorage.getItem(STORAGE_KEY_LOGICAL_AGENT)?.trim() ?? "";
+  } catch {
+    return "";
+  }
+}
+
+export function writePanelLogicalAgentId(agentId: string): void {
+  try {
+    sessionStorage.setItem(STORAGE_KEY_LOGICAL_AGENT, agentId.trim());
   } catch {
     // ignore private mode
   }

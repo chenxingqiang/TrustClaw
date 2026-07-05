@@ -1602,6 +1602,72 @@ textarea {
   min-width: 200px;
 }
 
+.domain-agent-registry__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  align-items: center;
+  margin: 10px 0 12px;
+}
+
+.domain-agent-registry__filters select {
+  min-width: 180px;
+}
+
+.domain-agent-registry__select {
+  flex: 1 1 280px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.domain-agent-registry__select select {
+  display: block;
+  width: 100%;
+  min-width: 280px;
+  margin-top: 4px;
+}
+
+.domain-agent-detail {
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.domain-agent-detail__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.domain-agent-detail__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px 14px;
+  margin: 0;
+}
+
+.domain-agent-detail__grid dt {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.domain-agent-detail__grid dd {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+}
+
+.domain-agent-registry__row {
+  cursor: pointer;
+}
+
+.domain-agent-registry__row--selected {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
 .agent-grants-list {
   display: flex;
   flex-direction: column;

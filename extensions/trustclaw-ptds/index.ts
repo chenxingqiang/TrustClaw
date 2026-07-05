@@ -11,6 +11,7 @@ import {
 } from "./src/agent-grant-routes.js";
 import { buildTrustclawPtdsAgentGuidance } from "./src/agent-guidance.js";
 import { createAgentPacksHandler } from "./src/agent-pack-routes.js";
+import { createDomainAgentsHandler } from "./src/domain-agent-routes.js";
 import { createAgentChatHandler } from "./src/agent-routes.js";
 import { createPtdsAuditEventsHandler } from "./src/audit-routes.js";
 import {
@@ -198,6 +199,12 @@ export default definePluginEntry({
       auth: "plugin",
       match: "exact",
       handler: createAgentPacksHandler(cfg),
+    });
+    api.registerHttpRoute({
+      path: "/api/ptds/domain-agents",
+      auth: "plugin",
+      match: "exact",
+      handler: createDomainAgentsHandler(cfg),
     });
     api.registerHttpRoute({
       path: "/api/ptds/agent-grants",

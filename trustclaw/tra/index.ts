@@ -81,6 +81,7 @@ export {
 export {
   DOMAIN_AGENTS_FULL_REGISTRY_TARGET,
   importBundledDomainAgentsMigration,
+  importBundledDomainAgentsRegistry,
   importDomainAgentsRegistryPackage,
   importDomainAgentsRegistrySql,
   seedDomainAgentsRegistryIfEmpty,

@@ -502,6 +502,17 @@ export type DomainAgentsQuery = {
   domain?: string;
 };
 
+export interface DomainAgentsImportResponse {
+  status: "success" | "error" | "skipped";
+  message: string;
+  imported_count?: number;
+  total_count?: number;
+}
+
+export interface DomainAgentsBundledRegistryImportRequest {
+  force?: boolean;
+}
+
 /** Serialize domain-agents registry URL with optional filters. */
 export function buildDomainAgentsUrl(base: string, query?: DomainAgentsQuery): string {
   const url = new URL("/api/tra/domain-agents", base);
@@ -612,6 +623,9 @@ export interface TrustclawApiClient {
   browse(table: string, limit?: number, agentPackId?: string): Promise<TraBrowseResponse>;
   agentGrants(): Promise<AgentGrantsResponse>;
   domainAgents(query?: DomainAgentsQuery): Promise<DomainAgentsResponse>;
+  importDomainAgentsBundledRegistry(
+    body?: DomainAgentsBundledRegistryImportRequest,
+  ): Promise<DomainAgentsImportResponse>;
   putAgentGrant(body: PutAgentGrantRequest): Promise<PutAgentGrantResponse>;
   chat(body: AgentChatRequest): Promise<AgentChatResponse>;
   auditEvents(
@@ -693,6 +707,12 @@ export function createApiClient(
     },
     domainAgents(query) {
       return callJson(fetchImpl, baseUrl, buildDomainAgentsUrl("http://x", query));
+    },
+    importDomainAgentsBundledRegistry(body) {
+      return callJson(fetchImpl, baseUrl, "/api/tra/domain-agents/import/bundled-registry", {
+        method: "POST",
+        body: JSON.stringify(body ?? {}),
+      });
     },
     putAgentGrant(body) {
       return callJson(fetchImpl, baseUrl, "/api/tra/agent-grants", {

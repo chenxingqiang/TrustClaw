@@ -4,7 +4,11 @@ import type { AgentGrantPackRow, TrustclawApiClient } from "../api.js";
 import { msg } from "../i18n/index.js";
 import { renderDomainAgentRegistry } from "./agent-domain-registry.js";
 import { formatGrantTimestamp, renderAgentGrantHistoryTable } from "./agent-grant-history.js";
-import { createGrantSessionId, readPanelLogicalAgentId, writePanelLogicalAgentId } from "./agent-panel-context.js";
+import {
+  createGrantSessionId,
+  readPanelLogicalAgentId,
+  writePanelLogicalAgentId,
+} from "./agent-panel-context.js";
 
 function escapeHtml(input: string): string {
   return input
@@ -18,6 +22,18 @@ function packLabel(pack: AgentGrantPackRow): string {
   return document.documentElement.lang === "zh-CN"
     ? pack.displayName["zh-CN"]
     : pack.displayName.en;
+}
+
+const DOMAIN_AGENTS_REGISTRY_TARGET = 1000;
+
+function renderRegistryImportBar(total: number, labels: { importBundled: string }): string {
+  if (total >= DOMAIN_AGENTS_REGISTRY_TARGET) {
+    return "";
+  }
+  return `<p class="panel-note panel-note--compact" data-testid="domain-agents-import-bar">
+    <button type="button" class="btn-inline" data-action="import-domain-registry">${escapeHtml(labels.importBundled)}</button>
+    <span data-testid="domain-agents-import-status"></span>
+  </p>`;
 }
 
 export function renderAgentGrants(
@@ -110,14 +126,16 @@ export function renderAgentGrants(
       selectedLogicalAgentId = "";
       writePanelLogicalAgentId("");
     }
-    registryHost.innerHTML = renderDomainAgentRegistry(
+    registryHost.innerHTML = `${renderRegistryImportBar(registry.summary.total, {
+      importBundled: m.registryImportBundled,
+    })}${renderDomainAgentRegistry(
       registry,
       registryLabels(),
       packIdsForRegistry,
       registryPackFilter,
       registryEnabledFilter,
       selectedLogicalAgentId,
-    );
+    )}`;
   }
 
   async function refresh(): Promise<void> {
@@ -223,7 +241,9 @@ export function renderAgentGrants(
   registryHost.addEventListener("change", async (event) => {
     const target = event.target as HTMLElement;
     const agentSelect = target.closest<HTMLSelectElement>('[data-testid="domain-agents-select"]');
-    const packSelect = target.closest<HTMLSelectElement>('[data-testid="domain-agents-filter-pack"]');
+    const packSelect = target.closest<HTMLSelectElement>(
+      '[data-testid="domain-agents-filter-pack"]',
+    );
     const enabledSelect = target.closest<HTMLSelectElement>(
       '[data-testid="domain-agents-filter-enabled"]',
     );
@@ -247,9 +267,43 @@ export function renderAgentGrants(
   });
 
   registryHost.addEventListener("click", async (event) => {
-    const row = (event.target as HTMLElement).closest<HTMLTableRowElement>(
-      '[data-testid="domain-agent-row"]',
-    );
+    const target = event.target as HTMLElement;
+    const importBtn = target.closest<HTMLButtonElement>('[data-action="import-domain-registry"]');
+    if (importBtn) {
+      const importStatus = registryHost.querySelector<HTMLElement>(
+        '[data-testid="domain-agents-import-status"]',
+      );
+      importBtn.disabled = true;
+      if (importStatus) {
+        importStatus.textContent = ` ${m.registryImporting}`;
+      }
+      try {
+        const result = await client.importDomainAgentsBundledRegistry();
+        if (result.status === "error") {
+          throw new Error(result.message);
+        }
+        registryPackFilter = "";
+        registryEnabledFilter = "";
+        await refresh();
+        if (importStatus && result.total_count != null) {
+          importStatus.textContent = ` ${m.registryImportDone.replace("{total}", String(result.total_count))}`;
+        }
+      } catch (error) {
+        const message = (error as Error).message;
+        if (importStatus) {
+          importStatus.textContent = ` ${m.registryImportError}: ${message}`;
+        } else {
+          registryHost.insertAdjacentHTML(
+            "afterbegin",
+            `<p class="panel-note panel-note--compact">${escapeHtml(`${m.registryImportError}: ${message}`)}</p>`,
+          );
+        }
+      } finally {
+        importBtn.disabled = false;
+      }
+      return;
+    }
+    const row = target.closest<HTMLTableRowElement>('[data-testid="domain-agent-row"]');
     if (!row) {
       return;
     }

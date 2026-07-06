@@ -1,7 +1,12 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import type { DatabaseSync } from "node:sqlite";
-import { openTraDatabase, bootstrapTraDatabase, runTraImmediateTransactionSync } from "./db.js";
+import {
+  applyTraSchema,
+  bootstrapTraDatabase,
+  openTraDatabase,
+  runTraImmediateTransactionSync,
+} from "./db.js";
 import {
   migrateLegacyDomainAgentsTable,
   migrateLegacyTraStateFiles,
@@ -69,35 +74,69 @@ export function importDomainAgentsRegistryFromFile(
   return importDomainAgentsRegistrySql(db, sql, options);
 }
 
+export function importBundledDomainAgentsRegistry(
+  dbPathOrOverrides: string | TraPathOverrides = {},
+  env: NodeJS.ProcessEnv = process.env,
+  options: { force?: boolean } = {},
+): DomainAgentsImportResult {
+  const dbPath =
+    typeof dbPathOrOverrides === "string"
+      ? dbPathOrOverrides
+      : resolveTraDbPath(dbPathOrOverrides, env);
+  migrateLegacyTraStateFiles(path.dirname(dbPath));
+  const db = openTraDatabase(dbPath);
+  try {
+    applyTraSchema(db);
+    migrateLegacyDomainAgentsTable(db);
+    const before = countDomainAgents(db);
+    if (!options.force && before >= DOMAIN_AGENTS_FULL_REGISTRY_TARGET) {
+      return {
+        status: "skipped",
+        message: `domain_agents already has ${before} rows (>= ${DOMAIN_AGENTS_FULL_REGISTRY_TARGET}).`,
+        total_count: before,
+      };
+    }
+    const total = runTraImmediateTransactionSync(db, () =>
+      importDomainAgentsRegistryFromFile(db, TRA_DOMAIN_AGENTS_REGISTRY_SQL, {
+        replace: before > 0 || options.force === true,
+      }),
+    );
+    return {
+      status: "success",
+      message: `Imported bundled domain agent registry (${before} → ${total} rows).`,
+      imported_count: Math.max(0, total - before),
+      total_count: total,
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { status: "error", message };
+  } finally {
+    db.close();
+  }
+}
+
 export function seedDomainAgentsRegistryIfEmpty(
   dbPathOrOverrides: string | TraPathOverrides = {},
   env: NodeJS.ProcessEnv = process.env,
   options: { minCount?: number } = {},
 ): DomainAgentsImportResult {
+  const minCount = options.minCount ?? DOMAIN_AGENTS_FULL_REGISTRY_TARGET;
   const dbPath =
     typeof dbPathOrOverrides === "string"
       ? dbPathOrOverrides
       : resolveTraDbPath(dbPathOrOverrides, env);
   try {
     const db = bootstrapTraDatabase(dbPath);
-    try {
-      const total = countDomainAgents(db);
-      const minCount = options.minCount ?? DOMAIN_AGENTS_FULL_REGISTRY_TARGET;
-      if (total >= minCount) {
-        return {
-          status: "skipped",
-          message: `domain_agents already has ${total} rows (>= ${minCount}).`,
-          total_count: total,
-        };
-      }
+    const total = countDomainAgents(db);
+    db.close();
+    if (total >= minCount) {
       return {
-        status: "success",
-        message: `domain_agents registry ready (${total} rows).`,
+        status: "skipped",
+        message: `domain_agents already has ${total} rows (>= ${minCount}).`,
         total_count: total,
       };
-    } finally {
-      db.close();
     }
+    return importBundledDomainAgentsRegistry(dbPathOrOverrides, env);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     return { status: "error", message };

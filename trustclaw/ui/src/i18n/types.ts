@@ -116,6 +116,10 @@ export type TrustclawMessages = {
       registryUnavailable: string;
       registryEmpty: string;
       registrySummary: string;
+      registryImportBundled: string;
+      registryImporting: string;
+      registryImportDone: string;
+      registryImportError: string;
       registrySelectLabel: string;
       registrySelectPlaceholder: string;
       registryFilterPack: string;

@@ -23,6 +23,7 @@ import { createTrustclawTraDataConsentHook } from "./src/data-consent-hook.js";
 import { createDeviceImportHandler, createDevicePreviewHandler } from "./src/device-routes.js";
 import {
   createDomainAgentsBundledMigrationHandler,
+  createDomainAgentsBundledRegistryHandler,
   createDomainAgentsHandler,
   createDomainAgentsImportHandler,
 } from "./src/domain-agent-routes.js";
@@ -226,6 +227,12 @@ export default definePluginEntry({
       auth: "plugin",
       match: "exact",
       handler: createDomainAgentsBundledMigrationHandler(cfg),
+    });
+    api.registerHttpRoute({
+      path: "/api/tra/domain-agents/import/bundled-registry",
+      auth: "plugin",
+      match: "exact",
+      handler: createDomainAgentsBundledRegistryHandler(cfg),
     });
     api.registerHttpRoute({
       path: "/api/tra/agent-grants",

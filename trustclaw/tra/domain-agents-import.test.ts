@@ -3,7 +3,12 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { bootstrapTraDatabase } from "./db.js";
-import { countDomainAgents, importDomainAgentsRegistrySql } from "./domain-agents-import.js";
+import {
+  countDomainAgents,
+  importDomainAgentsRegistrySql,
+  importBundledDomainAgentsRegistry,
+  seedDomainAgentsRegistryIfEmpty,
+} from "./domain-agents-import.js";
 import { ensureDomainAgentsPackSchema } from "./legacy-state-migration.js";
 import {
   migrateLegacyDomainAgentsTable,
@@ -114,6 +119,43 @@ describe("domain agents registry seed", () => {
         .get("x-1") as { tra_scopes: string };
       expect(row.tra_scopes).toBe("tra.read");
       db.close();
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("imports bundled registry when seed finds partial rows", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "trustclaw-domain-seed-partial-"));
+    const dbPath = path.join(dir, "local_tra.db");
+    try {
+      const db = bootstrapTraDatabase(dbPath);
+      db.exec("DELETE FROM domain_agents");
+      db.prepare(
+        `INSERT INTO domain_agents (agent_id, agent_name, domain, enabled, pack_id)
+         VALUES (?, ?, ?, ?, ?)`,
+      ).run("partial-1", "Partial", "audit", "false", "tra-audit");
+      db.close();
+
+      const result = seedDomainAgentsRegistryIfEmpty(dbPath);
+      expect(result.status).toBe("success");
+      expect(result.total_count).toBe(1000);
+
+      const verify = bootstrapTraDatabase(dbPath);
+      expect(countDomainAgents(verify)).toBe(1000);
+      verify.close();
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("skips bundled registry import when already at target", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "trustclaw-domain-seed-skip-"));
+    const dbPath = path.join(dir, "local_tra.db");
+    try {
+      bootstrapTraDatabase(dbPath);
+      const result = importBundledDomainAgentsRegistry(dbPath);
+      expect(result.status).toBe("skipped");
+      expect(result.total_count).toBe(1000);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

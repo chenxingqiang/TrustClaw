@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { z } from "zod";
 import {
   importBundledDomainAgentsMigration,
+  importBundledDomainAgentsRegistry,
   importDomainAgentsRegistryPackage,
   listDomainAgents,
   resolveTrustclawPaths,
@@ -13,6 +14,12 @@ const importRequestSchema = z
   .object({
     sql: z.string().trim().min(1),
     replace: z.boolean().optional(),
+  })
+  .strict();
+
+const bundledRegistryImportSchema = z
+  .object({
+    force: z.boolean().optional(),
   })
   .strict();
 
@@ -66,7 +73,10 @@ export function createDomainAgentsImportHandler(pluginConfig: TrustclawPluginCon
     }
     const body = importRequestSchema.safeParse(parsed.body);
     if (!body.success) {
-      sendJson(res, 400, { status: "error", message: "Invalid domain agent registry import payload." });
+      sendJson(res, 400, {
+        status: "error",
+        message: "Invalid domain agent registry import payload.",
+      });
       return true;
     }
     const paths = resolveTrustclawPaths(pluginConfig);
@@ -87,6 +97,37 @@ export function createDomainAgentsBundledMigrationHandler(
     const paths = resolveTrustclawPaths(pluginConfig);
     const result = importBundledDomainAgentsMigration(paths);
     sendJson(res, result.status === "success" ? 200 : 500, result);
+    return true;
+  };
+}
+
+export function createDomainAgentsBundledRegistryHandler(
+  pluginConfig: TrustclawPluginConfig | undefined,
+) {
+  return async (req: IncomingMessage, res: ServerResponse): Promise<boolean> => {
+    if (!methodIs(req, "POST")) {
+      sendJson(res, 405, { status: "error", message: "Method not allowed." });
+      return true;
+    }
+    const parsed = await readJsonBody(req);
+    if (!parsed.ok) {
+      sendJson(res, 400, { status: "error", message: parsed.message });
+      return true;
+    }
+    const body = bundledRegistryImportSchema.safeParse(parsed.body ?? {});
+    if (!body.success) {
+      sendJson(res, 400, {
+        status: "error",
+        message: "Invalid bundled domain agent registry import payload.",
+      });
+      return true;
+    }
+    const paths = resolveTrustclawPaths(pluginConfig);
+    const result = importBundledDomainAgentsRegistry(paths, process.env, {
+      force: body.data.force === true,
+    });
+    const status = result.status === "success" ? 200 : result.status === "skipped" ? 200 : 500;
+    sendJson(res, status, result);
     return true;
   };
 }

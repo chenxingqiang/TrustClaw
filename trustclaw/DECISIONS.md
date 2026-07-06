@@ -27,7 +27,7 @@
 | D21 | 合规包 `publisher_signature` 密码学验签                                             | deferred  |
 | D22 | 领域 Agent scope 赋权；fail-closed；按 pack 隔离 consent                            | delivered |
 | D23 | 自然语言多 Agent 意图路由                                                           | deferred  |
-| D24 | `domain_agents` 千级目录种子 + 浏览；全量导入为运营动作                             | approved  |
+| D24 | `domain_agents` 千级目录种子 + 浏览；全量导入为运营动作                             | delivered |
 | D25 | 全量 **TRA** 命名（API `/api/tra/*`、插件 `trustclaw-tra`、工具 `trustclaw_tra_*`） | delivered |
 
-**开放项：** D5、D21、D23（V2）；D13（品牌化）；D24（全量注册导入）。
+**开放项：** D5、D21、D23（V2）；D13（品牌化）。

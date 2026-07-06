@@ -627,7 +627,7 @@ node scripts/run-vitest.mjs trustclaw/runtime/rules/evaluate.test.ts
 ### 迭代选取规则（叠加「执行前闸门」）
 
 1. **先** §12 `open` 中阻塞 MCA 或测试红的项（G6 除外若仅文档争议）
-2. **再** `DECISIONS.md` 开放 approved 项（D24 全量导入、D13 品牌化）
+2. **再** `DECISIONS.md` 开放 approved 项（D13 品牌化）
 3. **再** Phase 3 表项（Operator / Pack 体验）
 4. **拒绝** 仅 UI polish 而 G7–G10 或合规 Must 未闭合
 
@@ -656,7 +656,8 @@ node scripts/run-vitest.mjs trustclaw/runtime/rules/evaluate.test.ts
 - **R20（2026-07-06，OpenClaw 解耦）**：`AGENTS.md` 增 § OpenClaw 解耦与最大化利用；Text2SQL 改 `api.runtime.llm.complete`（G11）；`openai-llm.ts` 降级为测试 harness。
 - **R21（2026-07-06，G6/G7）**：`RULE_EVAL` `FAILURE` + `AGENT_DECISION` `rule_outcome: soft_fail`；HTTP/WS `mca-parity.test.ts`；bridge 透传 `agent_pack_id`。
 - **R22（2026-07-06，G10）**：`declared_pipeline_steps` on RuntimeContext；`GET /api/tra/agent-grants` 暴露 `pipeline.stages`；Panel D 按 Pack 子集渲染闸门与完成判定。
-- **下一轮建议**：G8–G9（D23/D21 deferred）；D24 全量 domain_agents 导入；D5 频道出站 `audit_trail_id`。
+- **R23（2026-07-06，D24）**：`importBundledDomainAgentsRegistry` + `POST /api/tra/domain-agents/import/bundled-registry`；Panel C 运营导入按钮；修复 `seedDomainAgentsRegistryIfEmpty`。
+- **下一轮建议**：G8–G9（D23/D21 deferred）；D13 品牌化；D5 频道出站 `audit_trail_id`。
 
 ---
 

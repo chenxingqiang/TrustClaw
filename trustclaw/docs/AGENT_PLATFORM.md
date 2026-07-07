@@ -678,6 +678,7 @@ Full route index (subset of [layer table](#abstract-layer--operations--api--veri
 | `GET /api/tra/agent-packs`                             | GET (prefix)     | P3 pack registry list + `extension_points` |
 | `GET /api/tra/agent-packs/<packId>`                    | GET (prefix)     | P3 pack detail manifest (Phase 4 read)     |
 | `GET /api/tra/agent-packs/extension-points`            | GET (prefix)     | Closed enums for pack authoring            |
+| `POST /api/tra/agent-packs/validate`                   | POST (prefix)    | Validate `agent.pack.json` without write   |
 | `GET/PUT /api/tra/agent-grants`                        | GET, PUT         | P5 operator grants                         |
 | `GET/PUT/DELETE /api/tra/session/agent-pack`           | GET, PUT, DELETE | P4 session bind                            |
 | `GET /api/tra/audit/events`                            | GET              | Evidence — audit read                      |

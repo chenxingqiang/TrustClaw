@@ -13,6 +13,9 @@ export {
   resolveDefaultAgentsDir,
   resolvePackAssetPath,
   validateAgentPackDocument,
+  inspectAgentPackDocument,
+  type AgentPackValidationIssue,
+  type AgentPackValidationResult,
 } from "./load.js";
 export {
   AgentPackRegistry,

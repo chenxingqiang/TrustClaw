@@ -663,7 +663,8 @@ node scripts/run-vitest.mjs trustclaw/runtime/rules/evaluate.test.ts
 - **R27（2026-07-07，Phase 3 + D13）**：`resolveCoordinatorSessionKey` 将 bare `session_id` + `openclaw_agent_id` 规范为 `agent:<id>:<session>`；HTTP chat 可选 `openclaw_agent_id`；TRA Console shell i18n TrustClaw 对话文案。
 - **R28（2026-07-07，Phase 3 收口 + D13）**：里程碑 Phase 3 → **已交付**；`AGENT_PLATFORM.md` / `GETTING_STARTED.md` / governance 补 session key + RuntimeContext 协调器字段；Phase roadmap 对齐 R24–R27。
 - **R29（2026-07-07，Phase 4）**：`GET /api/tra/agent-packs` 增 `extension_points`；`GET …/extension-points` 与 `GET …/<packId>` 只读创作 API；`describeAgentPackDetail`。
-- **下一轮建议**：G8–G9（D23/D21 deferred）；D13 CLI 别名；Phase 4 pack 校验/写 API；D5 deferred。
+- **R30（2026-07-07，Phase 4）**：`inspectAgentPackDocument` + `POST /api/tra/agent-packs/validate`（结构化 zod issues，不落盘）。
+- **下一轮建议**：G8–G9（D23/D21 deferred）；D13 CLI 别名；Phase 4 pack 写 API；D5 deferred。
 
 ---
 

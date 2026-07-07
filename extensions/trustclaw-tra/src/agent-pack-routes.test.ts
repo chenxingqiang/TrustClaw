@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { describe, expect, it, vi } from "vitest";
+import { getAgentPackRegistry } from "../../../trustclaw/runtime/agent-pack/index.js";
 import { createAgentPacksHandler } from "./agent-pack-routes.js";
 
 function createMockResponse(): ServerResponse & { getBody: () => string } {
@@ -75,5 +76,48 @@ describe("GET /api/tra/agent-packs", () => {
     const res = createMockResponse();
     await handler(req, res);
     expect(res.statusCode).toBe(404);
+  });
+});
+
+describe("POST /api/tra/agent-packs/validate", () => {
+  const handler = createAgentPacksHandler(undefined);
+
+  it("accepts a valid pack manifest without writing to disk", async () => {
+    const pack = getAgentPackRegistry().get("nrdl-reimburse")!;
+    const { packDir: _packDir, packFile: _packFile, ...manifest } = pack;
+    const req = {
+      method: "POST",
+      url: "/api/tra/agent-packs/validate",
+      async *[Symbol.asyncIterator]() {
+        yield JSON.stringify(manifest);
+      },
+    } as IncomingMessage;
+    const res = createMockResponse();
+    await handler(req, res);
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.getBody()) as { valid: boolean; pack: { id: string } };
+    expect(body.valid).toBe(true);
+    expect(body.pack.id).toBe("nrdl-reimburse");
+  });
+
+  it("returns structured validation issues for invalid manifests", async () => {
+    const req = {
+      method: "POST",
+      url: "/api/tra/agent-packs/validate",
+      async *[Symbol.asyncIterator]() {
+        yield JSON.stringify({ id: "BAD ID" });
+      },
+    } as IncomingMessage;
+    const res = createMockResponse();
+    await handler(req, res);
+    expect(res.statusCode).toBe(400);
+    const body = JSON.parse(res.getBody()) as {
+      code: string;
+      valid: boolean;
+      issues: { path: string; message: string }[];
+    };
+    expect(body.code).toBe("invalid_agent_pack");
+    expect(body.valid).toBe(false);
+    expect(body.issues.length).toBeGreaterThan(0);
   });
 });

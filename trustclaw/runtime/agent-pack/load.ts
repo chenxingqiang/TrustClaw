@@ -93,3 +93,27 @@ export function validateAgentPackDocument(raw: unknown): AgentPackDocument {
   }
   return parsed.data;
 }
+
+export type AgentPackValidationIssue = {
+  path: string;
+  message: string;
+};
+
+export type AgentPackValidationResult =
+  | { ok: true; pack: AgentPackDocument }
+  | { ok: false; issues: AgentPackValidationIssue[] };
+
+/** Structured pack manifest validation for Phase 4 authoring (no filesystem write). */
+export function inspectAgentPackDocument(raw: unknown): AgentPackValidationResult {
+  const parsed = agentPackDocumentSchema.safeParse(raw);
+  if (parsed.success) {
+    return { ok: true, pack: parsed.data };
+  }
+  return {
+    ok: false,
+    issues: parsed.error.issues.map((issue) => ({
+      path: issue.path.length > 0 ? issue.path.join(".") : "(root)",
+      message: issue.message,
+    })),
+  };
+}

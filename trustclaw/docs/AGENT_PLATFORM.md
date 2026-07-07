@@ -664,33 +664,33 @@ flowchart TB
 
 Full route index (subset of [layer table](#abstract-layer--operations--api--verify)); all under Gateway plugin auth unless noted.
 
-| Endpoint                                               | Methods          | Layer / purpose                            |
-| ------------------------------------------------------ | ---------------- | ------------------------------------------ |
-| `POST /api/tra/init`                                   | POST             | Data — mount personal store                |
-| `POST /api/tra/reset`                                  | POST             | Data — clear TRA state (operator)          |
-| `GET /api/tra/status`                                  | GET              | Data — mount status                        |
-| `GET /api/tra/profile-summary`                         | GET              | Data — profile snapshot                    |
-| `GET /api/tra/tables`                                  | GET              | Data — browse allowlist (grant)            |
-| `GET /api/tra/browse`                                  | GET              | Data — table rows (grant)                  |
-| `GET /api/tra/browse/subscriptions`                    | GET              | Data — subscription snapshot               |
-| `GET /api/tra/domain-agents`                           | GET              | P1 catalog                                 |
-| `POST /api/tra/domain-agents`                          | POST             | P1 catalog import                          |
-| `POST /api/tra/domain-agents/import/bundled-migration` | POST             | P1 bundled migration                       |
-| `GET /api/tra/agent-packs`                             | GET (prefix)     | P3 pack registry list + `extension_points` |
-| `GET /api/tra/agent-packs/<packId>`                    | GET (prefix)     | P3 pack detail manifest (Phase 4 read)     |
-| `GET /api/tra/agent-packs/extension-points`            | GET (prefix)     | Closed enums for pack authoring            |
-| `POST /api/tra/agent-packs/validate`                   | POST (prefix)    | Validate `agent.pack.json` without write   |
-| `POST /api/tra/agent-packs`                            | POST (prefix)    | Create pack under `agentPacksDir`          |
-| `PUT /api/tra/agent-packs/<packId>`                    | PUT (prefix)     | Upsert manifest under `agentPacksDir`      |
-| `DELETE /api/tra/agent-packs/<packId>`                 | DELETE (prefix)  | Remove pack dir (not default pack)         |
-| `GET/PUT /api/tra/agent-grants`                        | GET, PUT         | P5 operator grants                         |
-| `GET/PUT/DELETE /api/tra/session/agent-pack`           | GET, PUT, DELETE | P4 session bind                            |
-| `GET /api/tra/audit/events`                            | GET              | Evidence — audit read                      |
-| `GET /api/tra/ledger`                                  | GET              | Evidence — ledger read                     |
-| `POST /api/tra/compliance/*`                           | POST, GET        | Policy — compliance import/read            |
-| `POST/GET /api/tra/reference/*`                        | POST, GET        | Data — reference sync                      |
-| `POST /api/tra/device/*`                               | POST             | Data — device import                       |
-| `POST /api/agent/chat`                                 | POST             | Agent — HTTP pipeline demo                 |
+| Endpoint                                               | Methods          | Layer / purpose                          |
+| ------------------------------------------------------ | ---------------- | ---------------------------------------- |
+| `POST /api/tra/init`                                   | POST             | Data — mount personal store              |
+| `POST /api/tra/reset`                                  | POST             | Data — clear TRA state (operator)        |
+| `GET /api/tra/status`                                  | GET              | Data — mount status                      |
+| `GET /api/tra/profile-summary`                         | GET              | Data — profile snapshot                  |
+| `GET /api/tra/tables`                                  | GET              | Data — browse allowlist (grant)          |
+| `GET /api/tra/browse`                                  | GET              | Data — table rows (grant)                |
+| `GET /api/tra/browse/subscriptions`                    | GET              | Data — subscription snapshot             |
+| `GET /api/tra/domain-agents`                           | GET              | P1 catalog                               |
+| `POST /api/tra/domain-agents`                          | POST             | P1 catalog import                        |
+| `POST /api/tra/domain-agents/import/bundled-migration` | POST             | P1 bundled migration                     |
+| `GET /api/tra/agent-packs`                             | GET (prefix)     | Pack registry list + `extension_points`  |
+| `GET /api/tra/agent-packs/<packId>`                    | GET (prefix)     | Pack detail manifest                     |
+| `GET /api/tra/agent-packs/extension-points`            | GET (prefix)     | Closed enums for pack authoring          |
+| `POST /api/tra/agent-packs/validate`                   | POST (prefix)    | Validate `agent.pack.json` without write |
+| `POST /api/tra/agent-packs`                            | POST (prefix)    | Create pack under `agentPacksDir`        |
+| `PUT /api/tra/agent-packs/<packId>`                    | PUT (prefix)     | Upsert manifest under `agentPacksDir`    |
+| `DELETE /api/tra/agent-packs/<packId>`                 | DELETE (prefix)  | Remove pack dir (not default pack)       |
+| `GET/PUT /api/tra/agent-grants`                        | GET, PUT         | P5 operator grants                       |
+| `GET/PUT/DELETE /api/tra/session/agent-pack`           | GET, PUT, DELETE | P4 session bind                          |
+| `GET /api/tra/audit/events`                            | GET              | Evidence — audit read                    |
+| `GET /api/tra/ledger`                                  | GET              | Evidence — ledger read                   |
+| `POST /api/tra/compliance/*`                           | POST, GET        | Policy — compliance import/read          |
+| `POST/GET /api/tra/reference/*`                        | POST, GET        | Data — reference sync                    |
+| `POST /api/tra/device/*`                               | POST             | Data — device import                     |
+| `POST /api/agent/chat`                                 | POST             | Agent — HTTP pipeline demo               |
 
 ### Chat and tools (non-REST)
 
@@ -719,11 +719,12 @@ Follow the [Pack loop](#pack-loop--five-phases-loops-engineer); do not skip Stra
 
 ## Phase roadmap
 
-| Phase          | Scope                                                                                                                    |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| **2.5 (done)** | Pack schema, registry, GLP-1 migration, 3 template packs, API list, §12 G1–G5                                            |
-| **3 (done)**   | Panel C selector; session-bound pack + lock; coordinator attribution; pack-scoped Text2SQL; multi-workspace session keys |
-| **4**          | Pack authoring CLI/UI; signed external packs (D21)                                                                       |
+| Phase          | Scope                                                                                                                           |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| **2.5 (done)** | Pack schema, registry, GLP-1 migration, 3 template packs, API list, §12 G1–G5                                                   |
+| **3 (done)**   | Panel C selector; session-bound pack + lock; coordinator attribution; pack-scoped Text2SQL; multi-workspace session keys        |
+| **4 (done)**   | Pack authoring HTTP API (`/api/tra/agent-packs/*`) + TRA Console Panel C2 (validate/create/save/delete); `agentPacksDir` writes |
+| **4.1**        | Signed external pack import + verify (D21 → G9)                                                                                 |
 
 ## Compliance notes
 

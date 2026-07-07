@@ -616,7 +616,8 @@ node scripts/run-vitest.mjs trustclaw/runtime/rules/evaluate.test.ts
 | --------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | **2.5**         | Pack schema、注册表、三 bundled packs、层操作模型文档、§12 G1–G5                              | 上表 G1–G5 `done`；`GET /api/tra/agent-packs`                                                                                   |
 | **3（已交付）** | Panel C 选择器、session pack、coordinator 归因、pack 级 Text2SQL、multi-workspace session key | `coordinator.test.ts` + `mca-parity.test.ts`；三 bundled pack `run-chat.test.ts`；RuntimeContext `agent_pack_source` / mismatch |
-| **4**           | Pack 创作 API/UI、外部签名 Pack                                                               | D21 闭合后验签 import                                                                                                           |
+| **4（已交付）** | Pack 创作 HTTP API + TRA Console Panel C2（validate/create/save/delete）                      | `agent-pack-routes.test.ts`（12）；`trustclaw/ui` vitest（39）；`agentPacksDir` 写路径                                          |
+| **4.1**         | 外部签名 Pack 验签 import（D21）                                                              | D21 闭合后 G9                                                                                                                   |
 
 ### Pack / Skill 起步（每轮可选 1 项）
 
@@ -628,7 +629,7 @@ node scripts/run-vitest.mjs trustclaw/runtime/rules/evaluate.test.ts
 
 1. **先** §12 `open` 中阻塞 MCA 或测试红的项（G6 除外若仅文档争议）
 2. **再** `DECISIONS.md` 开放 approved 项（D13 品牌化）
-3. **再** Phase 3 表项（Operator / Pack 体验）
+3. **再** Phase 4.1 / Operator 体验（D21 验签、D13 路径迁移）
 4. **拒绝** 仅 UI polish 而 G7–G10 或合规 Must 未闭合
 
 ---
@@ -669,7 +670,8 @@ node scripts/run-vitest.mjs trustclaw/runtime/rules/evaluate.test.ts
 - **R33（2026-07-07，D13）**：`trustclaw.mjs` CLI 别名 + `package.json` bin；`resolveCliName` / `isKnownCliBinary`；gateway/exec 守卫识别 `trustclaw`。
 - **R34（2026-07-07，Phase 4 UI）**：TRA Console Panel C2 `agent-pack-authoring`（列表/加载/校验/保存）；`api.ts` agent-packs 客户端。
 - **R35（2026-07-07，Phase 4 UI）**：Panel C2 增新建草稿、Create (POST)、Delete；`createAgentPack` / `deleteAgentPack` API 客户端。
-- **下一轮建议**：G8–G9（D23/D21 deferred）；D13 路径/包名迁移；Phase 4 收口；D5 deferred。
+- **R36（2026-07-07，Phase 4 收口）**：里程碑 Phase 4 → **已交付**；`AGENT_PLATFORM.md` / `GETTING_STARTED.md` / 里程碑表对齐 R29–R35；D21 验签列为 Phase 4.1。
+- **下一轮建议**：G8–G9（D23/D21 deferred）；D13 路径/包名迁移；D5 deferred；Operator 回归含 Panel C2。
 
 ---
 
@@ -878,8 +880,8 @@ pnpm openclaw gateway run          # :19001 after trustclaw:setup
 
 | Phase     | Scope                                                         |
 | --------- | ------------------------------------------------------------- |
-| **Now**   | Agent Platform 迭代：§12 G6–G10 + Phase 2.5→3（见上文里程碑） |
-| **Next**  | D5 频道、D13 品牌化、D24 目录规模、D21 验签                   |
+| **Now**   | Phase 4 已交付；迭代 §12 G8–G9（D23/D21 deferred）与 D13 续项 |
+| **Next**  | D13 路径/包名迁移、D21 验签（Phase 4.1）、D5 频道             |
 | **Later** | D23 多 Agent 意图路由；CLI/package 全量 rename                |
 
 未在 `DECISIONS.md` 标为 `approved` 的项不得静默实现。

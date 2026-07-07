@@ -116,6 +116,16 @@ In **TrustClaw TRA Console**, use the **领域 Agent** dropdown above chat to bi
 
 **Session keys:** OpenClaw passes full `sessionKey` values like `agent:main:<conversationId>`. The coordinator stores pack bindings under that key. Integrations that call `POST /api/agent/chat` with a bare `session_id` should also send `openclaw_agent_id` so bindings match the tool path (`trustclaw_tra_query`). Panel D shows `agent_pack_source` and mismatch hints when the sidebar agent differs from the locked pack.
 
+## Pack authoring (Phase 4)
+
+**Panel C2** in TRA Console (`agent-pack-authoring`) supports the full pack manifest loop:
+
+1. **Load** — `GET /api/tra/agent-packs/<id>`
+2. **Validate** — `POST /api/tra/agent-packs/validate` (structured zod issues)
+3. **Create / Save / Delete** — `POST` / `PUT` / `DELETE` under `/api/tra/agent-packs` (requires Gateway plugin `agentPacksDir` for writes)
+
+Use **New draft** for a starter manifest aligned with `trustclaw/agents/_template/agent.pack.json`. Bundled packs under `trustclaw/agents/` remain read-only unless copied to `agentPacksDir`. Signed external pack import (D21) is **Phase 4.1**, not yet shipped.
+
 ## Operator smoke — platform regression
 
 典型运维路径（非架构 canonical 流程；垂直细节由 Agent Pack 决定）：
@@ -137,6 +147,7 @@ In **TrustClaw TRA Console**, use the **领域 Agent** dropdown above chat to bi
 1. `pnpm trustclaw:setup && pnpm trustclaw:dev` → open `http://127.0.0.1:19001/` TRA Console (or `:5174/trustclaw/`).
 2. **A** — Initialize with defaults; confirm **处方上下文** fields (first prescription, institution level, specialist).
 3. **C** — Grant `glp1-eligibility` scopes (`tra.chat`, `panel.browse`, etc.) and save.
+   3b. **C2** (optional) — Open Pack authoring; load `compliance-auditor`; **Validate** manifest (no write required).
 4. **B** — Browse `user_profile` / `v_glp1_nrdl_check_snapshot`.
 5. **Chat** — New chat session; ask a GLP-1 eligibility question; approve `trustclaw_tra_query` if prompted.
 6. **D** — Refresh audit: five pipeline steps + compliance section if import/consent occurred.

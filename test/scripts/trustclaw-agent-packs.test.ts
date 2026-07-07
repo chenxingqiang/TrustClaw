@@ -4,6 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   resolveOperatorAgentPacksDir,
+  resolveTrustclawTraPluginConfig,
   seedBundledAgentPacksIfMissing,
 } from "../../scripts/lib/trustclaw-agent-packs.mjs";
 import { resolveTrustclawProfileStateDir } from "../../scripts/lib/trustclaw-defaults.mjs";
@@ -26,6 +27,22 @@ describe("trustclaw profile paths", () => {
 });
 
 describe("trustclaw-agent-packs", () => {
+  it("resolveTrustclawTraPluginConfig defaults agentPacksDir under state dir", () => {
+    const merged = resolveTrustclawTraPluginConfig({}, "/home/op/.openclaw");
+    expect(merged.enabled).toBe(true);
+    expect(merged.config?.agentPacksDir).toBe("/home/op/.openclaw/agent-packs");
+    expect(merged.config?.defaultAgentPack).toBe("glp1-eligibility");
+  });
+
+  it("resolveTrustclawTraPluginConfig preserves operator agentPacksDir override", () => {
+    const merged = resolveTrustclawTraPluginConfig(
+      { config: { agentPacksDir: "/srv/packs", defaultAgentPack: "custom-pack" } },
+      "/home/op/.openclaw",
+    );
+    expect(merged.config?.agentPacksDir).toBe("/srv/packs");
+    expect(merged.config?.defaultAgentPack).toBe("custom-pack");
+  });
+
   it("resolveOperatorAgentPacksDir nests under state dir", () => {
     expect(resolveOperatorAgentPacksDir("/home/operator/.openclaw")).toBe(
       path.join("/home/operator/.openclaw", "agent-packs"),

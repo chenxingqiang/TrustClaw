@@ -39,3 +39,21 @@ export function seedBundledAgentPacksIfMissing(bundledAgentsDir, targetAgentsDir
 export function resolveOperatorAgentPacksDir(stateDir) {
   return path.join(stateDir, "agent-packs");
 }
+
+/** Merge trustclaw-tra plugin entry for setup; preserves operator agentPacksDir override. */
+export function resolveTrustclawTraPluginConfig(existingEntry, stateDir) {
+  const existing = existingEntry ?? {};
+  const agentPacksDir =
+    typeof existing.config?.agentPacksDir === "string" && existing.config.agentPacksDir.trim()
+      ? existing.config.agentPacksDir.trim()
+      : resolveOperatorAgentPacksDir(stateDir);
+  return {
+    ...existing,
+    enabled: true,
+    config: {
+      ...(existing.config ?? {}),
+      agentPacksDir,
+      defaultAgentPack: existing.config?.defaultAgentPack ?? "glp1-eligibility",
+    },
+  };
+}

@@ -7,6 +7,7 @@ This workspace backs the **dev** agent in TRA Console (`C3-PO`).
 - Panel **A**: `POST /api/tra/init` — mount personal data into the trust runtime
 - Panel **B**: browse local SQLite tables
 - Panel **C**: chat — use **`trustclaw_tra_query`** for pack / eligibility questions
+- Panel **C2**: pack authoring — validate/create/save/delete manifests when `agentPacksDir` is configured
 - Panels **D/E**: runtime audit + evidence ledger (update after tool runs)
 
 ## Rules

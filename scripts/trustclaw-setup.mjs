@@ -6,6 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   resolveOperatorAgentPacksDir,
+  resolveTrustclawTraPluginConfig,
   seedBundledAgentPacksIfMissing,
 } from "./lib/trustclaw-agent-packs.mjs";
 import {
@@ -162,24 +163,12 @@ function applyTrustclawConfig(profileArgs) {
   const entries = migrateTrustclawPluginEntry({ ...(plugins.entries ?? {}) });
   const existing = entries["trustclaw-tra"] ?? {};
   const hadLegacyPtds = Boolean(plugins.entries?.["trustclaw-ptds"]);
-  const agentPacksDir =
-    typeof existing.config?.agentPacksDir === "string" && existing.config.agentPacksDir.trim()
-      ? existing.config.agentPacksDir.trim()
-      : resolveOperatorAgentPacksDir(stateDir);
 
   config.plugins = {
     ...plugins,
     entries: {
       ...entries,
-      "trustclaw-tra": {
-        ...existing,
-        enabled: true,
-        config: {
-          ...(existing.config ?? {}),
-          agentPacksDir,
-          defaultAgentPack: existing.config?.defaultAgentPack ?? "glp1-eligibility",
-        },
-      },
+      "trustclaw-tra": resolveTrustclawTraPluginConfig(existing, stateDir),
     },
   };
   config.gateway = {

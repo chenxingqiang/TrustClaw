@@ -677,7 +677,8 @@ node scripts/run-vitest.mjs trustclaw/runtime/rules/evaluate.test.ts
 - **R38（2026-07-07，Operator + 验证）**：`test/scripts/trustclaw-agent-packs.test.ts` 覆盖种子化契约；`GETTING_STARTED` Pass 1 增 Panel C2 create/save/delete 回归步骤。
 - **R39（2026-07-07，Operator）**：`trustclaw:setup` 按 profile 同步 workspace（`--dev` → `~/.openclaw-dev/workspace-*`）；`tra-pack-operations` skill 增 Panel C2 映射。
 - **R40（2026-07-07，Operator + 验证）**：`trustclaw:setup` 同步 `skills/`（含 `tra-pack-operations`）；平台能力清单增 `pack_authoring_api` / `pack_authoring_ui`；复跑 12+39 vitest 全绿。
-- **下一轮建议**：G8–G9（D23/D21 deferred）；D13 路径/包名迁移；Operator Pass 1 手工 C2 回归。
+- **R41（2026-07-07，D13 + Operator）**：`resolveTrustclawTraPluginConfig` 抽取 + 测试；`OPENCLAW_REUSE.md` 运营状态目录表；`GETTING_STARTED` 自动化证明清单扩充。
+- **下一轮建议**：G8–G9（D23/D21 deferred）；D13 `~/.trustclaw` 路径迁移（需 DECISIONS 批准）；Operator Pass 1 手工 C2。
 
 ---
 

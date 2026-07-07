@@ -40,18 +40,32 @@
 
 ## 关键 OpenClaw 路径（实现时必读）
 
-| 能力              | 路径                                          | TrustClaw 用途                            |
-| ----------------- | --------------------------------------------- | ----------------------------------------- |
-| Gateway HTTP 宿主 | `src/gateway/server-http.ts`                  | 挂载 `/api/tra/*`、`/api/agent/*`         |
-| Plugin HTTP 路由  | `src/gateway/server/plugins-http.ts`          | `registerHttpRoute` 处理器                |
-| Gateway WS Chat   | `src/gateway/server-methods/chat.ts`          | 频道回复；经 pack 工具链                  |
-| Control UI 网关桥 | `ui/src/ui/app-gateway.ts`                    | 实时审计事件                              |
-| LLM Provider 栈   | `src/llm/` + `api.runtime.llm`                | Text2SQL 经插件 `createPluginText2SqlLlm` |
-| 共享 State DB     | `src/state/openclaw-state-db.ts`              | 可选审计镜像；非 TRA 个人数据             |
-| Plugin SDK        | `src/plugin-sdk/`                             | 插件注册、runtime helper                  |
-| 多平台 Apps       | `apps/`                                       | **原样继承**                              |
-| 频道              | `extensions/telegram`、`whatsapp`、`discord`… | **原样继承** — 经 pack 输出结论           |
-| 配置              | `openclaw.json`                               | 插件段 `plugins.trustclaw-tra`            |
+| 能力              | 路径                                          | TrustClaw 用途                                                 |
+| ----------------- | --------------------------------------------- | -------------------------------------------------------------- |
+| Gateway HTTP 宿主 | `src/gateway/server-http.ts`                  | 挂载 `/api/tra/*`、`/api/agent/*`                              |
+| Plugin HTTP 路由  | `src/gateway/server/plugins-http.ts`          | `registerHttpRoute` 处理器                                     |
+| Gateway WS Chat   | `src/gateway/server-methods/chat.ts`          | 频道回复；经 pack 工具链                                       |
+| Control UI 网关桥 | `ui/src/ui/app-gateway.ts`                    | 实时审计事件                                                   |
+| LLM Provider 栈   | `src/llm/` + `api.runtime.llm`                | Text2SQL 经插件 `createPluginText2SqlLlm`                      |
+| 共享 State DB     | `src/state/openclaw-state-db.ts`              | 可选审计镜像；非 TRA 个人数据                                  |
+| Plugin SDK        | `src/plugin-sdk/`                             | 插件注册、runtime helper                                       |
+| 多平台 Apps       | `apps/`                                       | **原样继承**                                                   |
+| 频道              | `extensions/telegram`、`whatsapp`、`discord`… | **原样继承** — 经 pack 输出结论                                |
+| 配置              | `openclaw.json`                               | 插件段 `plugins.trustclaw-tra`；`agentPacksDir` 运营 pack 目录 |
+| CLI 入口          | `trustclaw.mjs` → `openclaw.mjs`              | D13：`trustclaw` 与 `openclaw` 同运行时                        |
+
+## Operator 状态目录（D13 过渡期）
+
+路径仍使用 OpenClaw 约定（`~/.openclaw` / `~/.openclaw-dev`）；`pnpm trustclaw:setup` 写入：
+
+| 路径（default profile）     | 用途                                      |
+| --------------------------- | ----------------------------------------- |
+| `~/.openclaw/openclaw.json` | Gateway + `plugins.entries.trustclaw-tra` |
+| `~/.openclaw/agent-packs/`  | 运营可写 Agent Pack（Panel C2 mutations） |
+| `~/.openclaw/workspace-*/`  | 同步的 workspace 模板 + `skills/`         |
+| `~/.openclaw/state/`        | TRA SQLite、`tra-audit/`、`tra-evidence/` |
+
+Dev profile 将 `~/.openclaw` 换为 `~/.openclaw-dev`。全量 `~/.trustclaw` 迁移属 D13 后续项，须先更新 `DECISIONS.md`。
 
 ## 平台适配继承（Phase 2+）
 

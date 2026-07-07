@@ -164,7 +164,12 @@ Use **New draft** for a starter manifest aligned with `trustclaw/agents/_templat
 2. Repeat steps 2–7 from Pass 1 on a **new** chat session.
 3. Confirm audit JSONL + `ledger.jsonl` were cleared before re-init (Panel E empty until next chat).
 
-**Automated proof (CI/local):** `extensions/trustclaw-tra/src/dod-reset-demo.test.ts` — init → 2× chat → reset → re-init → chat with fresh `block_height: 0`.
+**Automated proof (CI/local):**
+
+- `extensions/trustclaw-tra/src/dod-reset-demo.test.ts` — init → 2× chat → reset → re-init → chat with fresh `block_height: 0`
+- `node ./node_modules/vitest/vitest.mjs run extensions/trustclaw-tra/src/agent-pack-routes.test.ts` — Phase 4 pack authoring HTTP (12)
+- `pnpm trustclaw:ui:test` — TRA Console vitest including Panel C2 (39)
+- `node ./node_modules/vitest/vitest.mjs run test/scripts/trustclaw-agent-packs.test.ts test/scripts/trustclaw-workspace-sync.test.ts` — setup seed + workspace/skills sync (7)
 
 **Blocking fixes**
 

@@ -112,4 +112,74 @@ describe("TRA chat MCA parity (G7)", () => {
       rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  it("HTTP and WS expose coordinator attribution with matching agent_pack_id (Phase 3)", async () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "trustclaw-mca-coordinator-"));
+    const dbPath = path.join(dir, "local_tra.db");
+    const auditDir = path.join(dir, "tra-audit");
+    const evidenceDir = path.join(dir, "tra-evidence");
+    const pluginConfig = { dbPath, auditDir, evidenceDir };
+    const glp1Pack = getAgentPackRegistry().get("glp1-eligibility")!;
+    setAgentDomainGrant(glp1Pack.id, deriveAgentDomainScopes(glp1Pack), { dbPath, auditDir });
+    const sessionId = "sess_coordinator_parity";
+
+    try {
+      expect(
+        initializeTra(
+          {
+            ...TRA_INIT_DEFAULTS,
+            weight: 85,
+            height: 170,
+            hba1c: 6.8,
+            hasType2Diabetes: true,
+          },
+          { dbPath },
+        ).status,
+      ).toBe("success");
+
+      const httpHandler = createAgentChatHandler(pluginConfig, { llm: CHAT_LLM });
+      const httpReq = {
+        method: "POST",
+        async *[Symbol.asyncIterator]() {
+          yield JSON.stringify({
+            session_id: sessionId,
+            message: "我可以用司美格鲁肽吗？",
+            agent_pack_id: glp1Pack.id,
+          });
+        },
+      } as IncomingMessage;
+      const httpRes = createMockResponse();
+      await httpHandler(httpReq, httpRes);
+      expect(httpRes.statusCode).toBe(200);
+      const httpBody = JSON.parse(httpRes.getBody()) as {
+        agent_pack_id?: string;
+        agent_pack_source?: string;
+      };
+      expect(httpBody.agent_pack_id).toBe(glp1Pack.id);
+      expect(httpBody.agent_pack_source).toBe("request");
+
+      const tool = createTrustclawTraQueryToolFactory(pluginConfig, { llm: CHAT_LLM })({
+        sessionKey: sessionId,
+        sessionId,
+        agentId: "main",
+        sandboxed: false,
+      });
+      const toolResult = await tool!.execute("call-coordinator", {
+        message: "我可以用司美格鲁肽吗？",
+      });
+      const wsContext = (
+        toolResult as {
+          details?: {
+            trustclaw?: {
+              runtime_context?: { agent_pack_id?: string; agent_pack_source?: string };
+            };
+          };
+        }
+      ).details?.trustclaw?.runtime_context;
+      expect(wsContext?.agent_pack_id).toBe(glp1Pack.id);
+      expect(wsContext?.agent_pack_source).toBe("session");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });

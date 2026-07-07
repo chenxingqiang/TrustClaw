@@ -362,7 +362,12 @@ export function renderAudit(
       }
 
       trailIdEl.textContent = context.audit_trail_id;
-      chatNote.textContent = m.chatLive;
+      const packId = context.agent_pack_id?.trim() ?? "";
+      const packSource = context.agent_pack_source?.trim();
+      chatNote.textContent =
+        packId && packSource
+          ? m.chatCoordinator.replace("{pack}", packId).replace("{source}", packSource)
+          : m.chatLive;
       void refreshComplianceEvents();
       const stages = context.pipeline_stages;
       const syntheticEvents: AuditEventRow[] = [];

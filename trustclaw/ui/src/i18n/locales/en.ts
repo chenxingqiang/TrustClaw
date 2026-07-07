@@ -249,6 +249,7 @@ export const en: TrustclawMessages = {
       chatLoaded: "Loaded {count} step(s) from the latest chat audit trail (JSONL).",
       chatLoading: "Loading chat pipeline audit…",
       chatLive: "Live runtime context from the latest chat run.",
+      chatCoordinator: "Agent pack «{pack}» (source: {source}).",
       chatOtherAgent:
         "Live trail belongs to agent «{agent}» — switch the selector or chat with that agent.",
       apiUnavailable:

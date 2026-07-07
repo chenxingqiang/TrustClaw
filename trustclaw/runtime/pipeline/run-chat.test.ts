@@ -248,6 +248,59 @@ describe("trustclaw/runtime/pipeline", () => {
     }
   });
 
+  it("runs compliance-auditor pack without RULE_EVAL audit steps (Phase 3)", async () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "trustclaw-pipeline-compliance-"));
+    const dbPath = path.join(dir, "local_tra.db");
+    const auditDir = path.join(dir, "tra-audit");
+    const compliancePack = getAgentPackRegistry().get("compliance-auditor")!;
+    try {
+      initializeTra(
+        {
+          ...TRA_INIT_DEFAULTS,
+          weight: 85,
+          height: 170,
+          hba1c: 6.8,
+        },
+        { dbPath },
+      );
+
+      const result = await runTrustclawChat(
+        {
+          session_id: "sess_compliance",
+          message: "当前有哪些数据源？",
+          agent_pack_id: compliancePack.id,
+        },
+        {
+          dbPath,
+          auditDir,
+          evidenceDir: path.join(dir, "tra-evidence"),
+          llm: async () => "SELECT source_id, label FROM data_source_registry LIMIT 5",
+          agentPack: compliancePack,
+        },
+      );
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) {
+        return;
+      }
+      expect(result.context.agent_pack_id).toBe(compliancePack.id);
+      expect(result.context.pipeline_stages.rule_evaluation).toBeUndefined();
+
+      const missing = missingChatPipelineSteps(auditDir, result.context.audit_trail_id, {
+        expectedSteps: compliancePack.pipeline.stages,
+      });
+      expect(missing).toEqual([]);
+
+      const steps = readAuditEvents({ auditDir, limit: 20 })
+        .filter((event) => event.audit_trail_id === result.context.audit_trail_id)
+        .map((event) => event.step);
+      expect(steps).not.toContain("RULE_EVAL");
+      expect(steps).toContain("AGENT_DECISION");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("blocks chat on Text2SQL security violation", async () => {
     const dir = mkdtempSync(path.join(tmpdir(), "trustclaw-pipeline-sec-"));
     const dbPath = path.join(dir, "local_tra.db");

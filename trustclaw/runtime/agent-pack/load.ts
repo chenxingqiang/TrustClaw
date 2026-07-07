@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -116,4 +116,32 @@ export function inspectAgentPackDocument(raw: unknown): AgentPackValidationResul
       message: issue.message,
     })),
   };
+}
+
+function assertPackDirUnderAgentsRoot(agentsDir: string, packId: string): string {
+  const agentsRoot = path.resolve(agentsDir);
+  const packDir = path.resolve(agentsDir, packId);
+  if (!packDir.startsWith(agentsRoot + path.sep) && packDir !== agentsRoot) {
+    throw new Error(`Agent pack directory escapes agents dir: ${packId}`);
+  }
+  return packDir;
+}
+
+/** Persist a validated pack manifest under `packDir/agent.pack.json`. */
+export function writeAgentPackDocument(
+  agentsDir: string,
+  pack: AgentPackDocument,
+  options?: { packDir?: string },
+): { packDir: string; packFile: string } {
+  const agentsRoot = path.resolve(agentsDir);
+  const packDir = options?.packDir?.trim()
+    ? path.resolve(options.packDir)
+    : assertPackDirUnderAgentsRoot(agentsDir, pack.id);
+  if (!packDir.startsWith(agentsRoot + path.sep) && packDir !== agentsRoot) {
+    throw new Error(`Refusing to write pack outside agents dir: ${pack.id}`);
+  }
+  mkdirSync(packDir, { recursive: true });
+  const packFile = path.join(packDir, PACK_FILENAME);
+  writeFileSync(packFile, `${JSON.stringify(pack, null, 2)}\n`, "utf8");
+  return { packDir, packFile };
 }

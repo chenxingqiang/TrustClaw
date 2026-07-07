@@ -602,7 +602,7 @@ TRA **does not use symmetric CRUD on every layer**. Each layer has an **operatio
 
 **Notes:**
 
-- **Pack list is Read-only over HTTP** — Create/Update/Delete packs via repo files until Phase 4 write API; **read** surfaces: list + `extension_points` + per-pack detail (`GET /api/tra/agent-packs/<id>`).
+- **Pack list is Read-only over HTTP** — Bundled packs ship with the runtime; **operator-owned** packs live under configured `agentPacksDir` and may be updated via `PUT /api/tra/agent-packs/<id>` after `POST …/validate`. Create/delete on disk remains a follow-up.
 - **Logic Agent `enabled` / `tra_scopes`** — Read in catalog; **runtime ignores** for execution (P5 is source of truth); D23 may connect later.
 - **Grant PUT** validates scopes against pack manifest; **direct edit** of `agent-domain-grants.json` is unsupported — see governance §12.
 
@@ -679,6 +679,7 @@ Full route index (subset of [layer table](#abstract-layer--operations--api--veri
 | `GET /api/tra/agent-packs/<packId>`                    | GET (prefix)     | P3 pack detail manifest (Phase 4 read)     |
 | `GET /api/tra/agent-packs/extension-points`            | GET (prefix)     | Closed enums for pack authoring            |
 | `POST /api/tra/agent-packs/validate`                   | POST (prefix)    | Validate `agent.pack.json` without write   |
+| `PUT /api/tra/agent-packs/<packId>`                    | PUT (prefix)     | Upsert manifest under `agentPacksDir`      |
 | `GET/PUT /api/tra/agent-grants`                        | GET, PUT         | P5 operator grants                         |
 | `GET/PUT/DELETE /api/tra/session/agent-pack`           | GET, PUT, DELETE | P4 session bind                            |
 | `GET /api/tra/audit/events`                            | GET              | Evidence — audit read                      |

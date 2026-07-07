@@ -5,7 +5,9 @@ import {
   getAgentPackRegistry,
   inspectAgentPackDocument,
   listAgentPackExtensionPoints,
+  resetAgentPackRegistryCache,
   summarizeAgentPack,
+  writeAgentPackDocument,
 } from "../../../trustclaw/runtime/agent-pack/index.js";
 import type { TrustclawPluginConfig } from "../../../trustclaw/tra/config.js";
 import { methodIs, readJsonBody, sendJson } from "./http-utils.js";
@@ -20,6 +22,13 @@ function loadRegistry(pluginConfig: TrustclawPluginConfig | undefined) {
     agentsDir: pluginConfig?.agentPacksDir,
     defaultPackId: pluginConfig?.defaultAgentPack,
   });
+}
+
+function resolveWritableAgentsDir(
+  pluginConfig: TrustclawPluginConfig | undefined,
+): string | undefined {
+  const agentsDir = pluginConfig?.agentPacksDir?.trim();
+  return agentsDir || undefined;
 }
 
 export function createAgentPacksHandler(pluginConfig: TrustclawPluginConfig | undefined) {
@@ -52,6 +61,63 @@ export function createAgentPacksHandler(pluginConfig: TrustclawPluginConfig | un
           status: "success",
           valid: true,
           pack: describeAgentPackDetail(inspected.pack),
+          schema_ref: agentPackDocumentJsonSchemaRef,
+        });
+        return true;
+      }
+
+      if (subpath && methodIs(req, "PUT")) {
+        const agentsDir = resolveWritableAgentsDir(pluginConfig);
+        if (!agentsDir) {
+          sendJson(res, 403, {
+            status: "error",
+            code: "pack_write_disabled",
+            message: "Agent pack writes require plugin config agentPacksDir.",
+          });
+          return true;
+        }
+        const parsed = await readJsonBody(req);
+        if (!parsed.ok) {
+          sendJson(res, 400, { status: "error", message: parsed.message });
+          return true;
+        }
+        const inspected = inspectAgentPackDocument(parsed.body);
+        if (!inspected.ok) {
+          sendJson(res, 400, {
+            status: "error",
+            code: "invalid_agent_pack",
+            valid: false,
+            issues: inspected.issues,
+            schema_ref: agentPackDocumentJsonSchemaRef,
+          });
+          return true;
+        }
+        if (inspected.pack.id !== subpath) {
+          sendJson(res, 400, {
+            status: "error",
+            code: "pack_id_mismatch",
+            message: `Pack id ${inspected.pack.id} does not match URL path ${subpath}.`,
+          });
+          return true;
+        }
+        const registryBefore = loadRegistry(pluginConfig);
+        const existing = registryBefore.get(subpath);
+        writeAgentPackDocument(agentsDir, inspected.pack, {
+          packDir: existing?.packDir,
+        });
+        resetAgentPackRegistryCache();
+        const registry = loadRegistry(pluginConfig);
+        const pack = registry.get(subpath);
+        if (!pack) {
+          sendJson(res, 500, {
+            status: "error",
+            message: `Pack ${subpath} was written but could not be reloaded.`,
+          });
+          return true;
+        }
+        sendJson(res, 200, {
+          status: "success",
+          pack: describeAgentPackDetail(pack),
           schema_ref: agentPackDocumentJsonSchemaRef,
         });
         return true;

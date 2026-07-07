@@ -16,6 +16,7 @@ export {
   inspectAgentPackDocument,
   type AgentPackValidationIssue,
   type AgentPackValidationResult,
+  writeAgentPackDocument,
 } from "./load.js";
 export {
   AgentPackRegistry,

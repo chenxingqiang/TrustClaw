@@ -147,12 +147,16 @@ Use **New draft** for a starter manifest aligned with `trustclaw/agents/_templat
 1. `pnpm trustclaw:setup && pnpm trustclaw:dev` → open `http://127.0.0.1:19001/` TRA Console (or `:5174/trustclaw/`).
 2. **A** — Initialize with defaults; confirm **处方上下文** fields (first prescription, institution level, specialist).
 3. **C** — Grant `glp1-eligibility` scopes (`tra.chat`, `panel.browse`, etc.) and save.
-   3b. **C2** (optional) — Open Pack authoring; load `compliance-auditor`; **Validate** manifest (no write required).
-4. **B** — Browse `user_profile` / `v_glp1_nrdl_check_snapshot`.
-5. **Chat** — New chat session; ask a GLP-1 eligibility question; approve `trustclaw_tra_query` if prompted.
-6. **D** — Refresh audit: five pipeline steps + compliance section if import/consent occurred.
-7. **E** — Ledger badge **verified**; `block_height` increments after second chat; `previous_evidence_hash` links blocks.
-8. **F** (optional) — Import compliance standard with consent; Panel D shows summarized `COMPLIANCE_IMPORT`.
+4. **C2** — Pack authoring (requires prior `pnpm trustclaw:setup` so `agentPacksDir` is set):
+   - Load `compliance-auditor` → **Validate** (expect success).
+   - **New draft** → change `id` to `operator-smoke-pack` (unique) → **Validate** → **Create**.
+   - Confirm pack appears in list; **Load** again → tweak `displayName.en` → **Save**.
+   - **Delete** `operator-smoke-pack` (not the default `glp1-eligibility` pack).
+5. **B** — Browse `user_profile` / `v_glp1_nrdl_check_snapshot`.
+6. **Chat** — New chat session; ask a GLP-1 eligibility question; approve `trustclaw_tra_query` if prompted.
+7. **D** — Refresh audit: five pipeline steps + compliance section if import/consent occurred.
+8. **E** — Ledger badge **verified**; `block_height` increments after second chat; `previous_evidence_hash` links blocks.
+9. **F** (optional) — Import compliance standard with consent; Panel D shows summarized `COMPLIANCE_IMPORT`.
 
 **Pass 2 — reset**
 
@@ -164,11 +168,12 @@ Use **New draft** for a starter manifest aligned with `trustclaw/agents/_templat
 
 **Blocking fixes**
 
-| Symptom                                                   | Fix                                                                 |
-| --------------------------------------------------------- | ------------------------------------------------------------------- |
-| `plugin manifest not found: .../dist/extensions/acpx/...` | `pnpm trustclaw:setup` disables `acpx` when dist manifest is absent |
-| Gateway ECONNREFUSED on `:19001`                          | Wait for gateway ready log; do not start Vite alone                 |
-| Init 400 after route changes                              | Restart `pnpm trustclaw:dev` + hard refresh                         |
+| Symptom                                                   | Fix                                                                    |
+| --------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `plugin manifest not found: .../dist/extensions/acpx/...` | `pnpm trustclaw:setup` disables `acpx` when dist manifest is absent    |
+| Gateway ECONNREFUSED on `:19001`                          | Wait for gateway ready log; do not start Vite alone                    |
+| Init 400 after route changes                              | Restart `pnpm trustclaw:dev` + hard refresh                            |
+| Panel C2 Save/Create returns `pack_write_disabled` (403)  | Run `pnpm trustclaw:setup`; confirm `agentPacksDir` in `openclaw.json` |
 
 ## Architecture (TrustClaw × OpenClaw)
 

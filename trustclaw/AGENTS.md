@@ -672,7 +672,8 @@ node scripts/run-vitest.mjs trustclaw/runtime/rules/evaluate.test.ts
 - **R35（2026-07-07，Phase 4 UI）**：Panel C2 增新建草稿、Create (POST)、Delete；`createAgentPack` / `deleteAgentPack` API 客户端。
 - **R36（2026-07-07，Phase 4 收口）**：里程碑 Phase 4 → **已交付**；`AGENT_PLATFORM.md` / `GETTING_STARTED.md` / 里程碑表对齐 R29–R35；D21 验签列为 Phase 4.1。
 - **R37（2026-07-07，Operator）**：`trustclaw:setup` 默认写入 `agentPacksDir`（`~/.openclaw/agent-packs`）并种子化 bundled packs；Panel C2 写路径开箱可用。
-- **下一轮建议**：G8–G9（D23/D21 deferred）；D13 路径/包名迁移；D5 deferred；Operator 回归含 Panel C2 create/delete。
+- **R38（2026-07-07，Operator + 验证）**：`test/scripts/trustclaw-agent-packs.test.ts` 覆盖种子化契约；`GETTING_STARTED` Pass 1 增 Panel C2 create/save/delete 回归步骤。
+- **下一轮建议**：G8–G9（D23/D21 deferred）；D13 路径/包名迁移；D5 deferred；`agent-pack-routes` 与 UI vitest 定期复跑。
 
 ---
 

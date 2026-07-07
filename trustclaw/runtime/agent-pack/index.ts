@@ -19,6 +19,7 @@ export {
   getAgentPackRegistry,
   resetAgentPackRegistryCache,
   summarizeAgentPack,
+  describeAgentPackDetail,
 } from "./registry.js";
 export {
   buildAgentPackSystemContext,

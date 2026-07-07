@@ -90,6 +90,28 @@ export function summarizeAgentPack(pack: AgentPackDocument): {
   };
 }
 
+/** Full pack manifest for Phase 4 authoring read API (paths only, no prompt file bodies). */
+export function describeAgentPackDetail(pack: AgentPackDocument): ReturnType<
+  typeof summarizeAgentPack
+> & {
+  prompts: AgentPackDocument["prompts"];
+  data: AgentPackDocument["data"];
+  rules: AgentPackDocument["rules"];
+  consent: AgentPackDocument["consent"];
+  audit: AgentPackDocument["audit"];
+  pipeline: AgentPackDocument["pipeline"];
+} {
+  return {
+    ...summarizeAgentPack(pack),
+    prompts: pack.prompts,
+    data: pack.data,
+    rules: pack.rules,
+    consent: pack.consent,
+    audit: pack.audit,
+    pipeline: pack.pipeline,
+  };
+}
+
 let cachedRegistry: AgentPackRegistry | undefined;
 
 export function getAgentPackRegistry(options?: AgentPackRegistryOptions): AgentPackRegistry {

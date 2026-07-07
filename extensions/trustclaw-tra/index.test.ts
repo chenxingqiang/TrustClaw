@@ -98,14 +98,19 @@ describe("trustclaw-tra plugin", () => {
       "/api/tra/browse",
       "/api/tra/agent-packs",
       "/api/tra/domain-agents",
+      "/api/tra/domain-agents/import/bundled-migration",
+      "/api/tra/domain-agents/import/bundled-registry",
       "/api/tra/agent-grants",
       "/api/tra/session/agent-pack",
       "/api/agent/chat",
       "/trustclaw",
     ]);
     expect(routes.every((route) => route.auth === "plugin")).toBe(true);
-    expect(routes.filter((route) => route.match === "exact").length).toBe(25);
-    expect(routes.find((route) => route.path === "/trustclaw")?.match).toBe("prefix");
+    expect(routes.filter((route) => route.match === "exact").length).toBe(26);
+    expect(routes.filter((route) => route.match === "prefix").map((route) => route.path)).toEqual([
+      "/api/tra/agent-packs",
+      "/trustclaw",
+    ]);
     expect(registerTool).toHaveBeenCalledTimes(2);
     expect(on).toHaveBeenCalledWith("before_prompt_build", expect.any(Function));
     expect(on).toHaveBeenCalledWith("before_tool_call", expect.any(Function));

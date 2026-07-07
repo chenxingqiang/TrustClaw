@@ -202,7 +202,7 @@ export default definePluginEntry({
     api.registerHttpRoute({
       path: "/api/tra/agent-packs",
       auth: "plugin",
-      match: "exact",
+      match: "prefix",
       handler: createAgentPacksHandler(cfg),
     });
     api.registerHttpRoute({

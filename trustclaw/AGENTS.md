@@ -612,11 +612,11 @@ node scripts/run-vitest.mjs trustclaw/runtime/rules/evaluate.test.ts
 
 ### 里程碑（缩小 repo ↔ 设计差距）
 
-| 阶段            | 目标                                                             | 完成信号                                                         |
-| --------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------- |
-| **2.5**         | Pack schema、注册表、三 bundled packs、层操作模型文档、§12 G1–G5 | 上表 G1–G5 `done`；`GET /api/tra/agent-packs`                    |
-| **3（进行中）** | Panel C 选择器、session pack、coordinator 归因、pack 级 Text2SQL | session pack API + lock 测试；RuntimeContext `agent_pack_source` |
-| **4**           | Pack 创作 API/UI、外部签名 Pack                                  | D21 闭合后验签 import                                            |
+| 阶段            | 目标                                                                                          | 完成信号                                                                                                                        |
+| --------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| **2.5**         | Pack schema、注册表、三 bundled packs、层操作模型文档、§12 G1–G5                              | 上表 G1–G5 `done`；`GET /api/tra/agent-packs`                                                                                   |
+| **3（已交付）** | Panel C 选择器、session pack、coordinator 归因、pack 级 Text2SQL、multi-workspace session key | `coordinator.test.ts` + `mca-parity.test.ts`；三 bundled pack `run-chat.test.ts`；RuntimeContext `agent_pack_source` / mismatch |
+| **4**           | Pack 创作 API/UI、外部签名 Pack                                                               | D21 闭合后验签 import                                                                                                           |
 
 ### Pack / Skill 起步（每轮可选 1 项）
 
@@ -661,7 +661,8 @@ node scripts/run-vitest.mjs trustclaw/runtime/rules/evaluate.test.ts
 - **R25（2026-07-07，Phase 3）**：`compliance-auditor` chat 无 `RULE_EVAL` 管道测试；MCA parity 断言 HTTP `request` / WS `session` 协调器归因；Panel D 实时展示 `agent_pack_source`。
 - **R26（2026-07-07，Phase 3 + D13）**：`nrdl-reimburse` 全阶段 chat 管道测试；Panel D `agent_pack_mismatch` + 建议 pack 提示；Control UI `tabs.tra` TrustClaw 品牌化。
 - **R27（2026-07-07，Phase 3 + D13）**：`resolveCoordinatorSessionKey` 将 bare `session_id` + `openclaw_agent_id` 规范为 `agent:<id>:<session>`；HTTP chat 可选 `openclaw_agent_id`；TRA Console shell i18n TrustClaw 对话文案。
-- **下一轮建议**：G8–G9（D23/D21 deferred）；D13 GETTING_STARTED 余量；D5 频道出站 `audit_trail_id`；Phase 3 里程碑收口。
+- **R28（2026-07-07，Phase 3 收口 + D13）**：里程碑 Phase 3 → **已交付**；`AGENT_PLATFORM.md` / `GETTING_STARTED.md` / governance 补 session key + RuntimeContext 协调器字段；Phase roadmap 对齐 R24–R27。
+- **下一轮建议**：G8–G9（D23/D21 deferred）；D13 CLI 别名；D5 频道出站 `audit_trail_id`；Phase 4 Pack 创作。
 
 ---
 
@@ -684,7 +685,7 @@ node scripts/run-vitest.mjs trustclaw/runtime/rules/evaluate.test.ts
 - **acpx manifest missing**：TrustClaw dist 不含 `acpx` 时 Gateway 会因 `plugins.entries.acpx` 报错；`pnpm trustclaw:setup` 会写入 `enabled: false`，然后重启 dev。
 - **i18n**：Control UI 语言在 **Overview → Access → Language**（非 Appearance）；存储键 `openclaw.i18n.locale`（`en` / `zh-CN`）。侧栏 bundle 在 `trustclaw/ui/src/i18n/locales/`；iframe `@load` 发 `openclaw:i18n:locale`；改语言后建议刷新或重载侧栏（尚无 theme 级 live locale broadcast）。
 - **无 orchestrator**：不要新增「一键跑完平台清单」脚本；按平台能力清单手工串联。
-- **术语**：产品逻辑用「本地用户 / 个人 TRA 数据 / 种子规则」；避免 `demo_*` 字段名进入 API 或持久化层。
+- **Session pack key**：Coordinator 存储键为 OpenClaw `sessionKey`（`agent:<agentId>:<conversationId>`）。HTTP `POST /api/agent/chat` 若只传 bare `session_id`，须同时传 `openclaw_agent_id` 才能与 WS 工具路径共享绑定；Control UI 已传完整 `sessionKey`。
 - **Commit 时机**：重要验证通过后即 commit；避免大批未验证变更堆在同一 diff。
 
 ---

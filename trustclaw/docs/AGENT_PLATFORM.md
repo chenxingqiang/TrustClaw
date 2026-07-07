@@ -522,6 +522,37 @@ Plugin hooks:
 3. **openclaw_agent** / **default** — only before a lock exists
 4. **request** — `POST /api/agent/chat` with `agent_pack_id` (also binds when `bindLock`)
 
+### Session key canonicalization (multi-workspace)
+
+`resolveCoordinatorSessionKey` (`trustclaw/runtime/coordinator/session-key.ts`) normalizes coordinator storage:
+
+- Keys already prefixed with `agent:` pass through unchanged (Control UI / OpenClaw tool `sessionKey`).
+- Bare `session_id` + `openclaw_agent_id` → `agent:<agentId>:<session>` so HTTP chat and WS tools share the same pack binding.
+
+`POST /api/agent/chat` body (optional fields in **bold**):
+
+```json
+{
+  "session_id": "thread-1",
+  "message": "…",
+  "agent_pack_id": "glp1-eligibility",
+  "openclaw_agent_id": "main"
+}
+```
+
+### Runtime Context coordinator fields
+
+Chat responses and `trustclaw_tra_query` tool `details.trustclaw.runtime_context` may include:
+
+| Field                        | Meaning                                                                         |
+| ---------------------------- | ------------------------------------------------------------------------------- |
+| `agent_pack_id`              | Effective pack for this run                                                     |
+| `agent_pack_source`          | `session` \| `lock` \| `openclaw_agent` \| `default` \| `request`               |
+| `agent_pack_locked`          | Coordinator lock active                                                         |
+| `agent_pack_mismatch`        | OpenClaw sidebar agent suggests a different pack than the locked/effective pack |
+| `openclaw_suggested_pack_id` | Pack implied by current `openclawAgentId` mapping                               |
+| `declared_pipeline_steps`    | Pack `pipeline.stages` subset for Panel D gates                                 |
+
 Storage: `state/tra-audit/session-agent-packs.json` with `sessions` (UI override) and `locks` (coordinator).
 
 | Endpoint                                          | Purpose                                       |
@@ -664,7 +695,7 @@ Full route index (subset of [layer table](#abstract-layer--operations--api--veri
 | `before_tool_call`    | hook        | P5/P6                   |
 | OpenClaw WS chat      | gateway     | P4–P8 via tools + hooks |
 
-`POST /api/agent/chat` responses include `agent_pack_id` and `pipeline_stages` (Runtime Context).
+`POST /api/agent/chat` responses include Runtime Context: `agent_pack_id`, `pipeline_stages`, and coordinator fields (`agent_pack_source`, `agent_pack_mismatch`, …).
 
 ## Adding a new healthcare agent (Loops Engineer checklist)
 
@@ -681,11 +712,11 @@ Follow the [Pack loop](#pack-loop--five-phases-loops-engineer); do not skip Stra
 
 ## Phase roadmap
 
-| Phase             | Scope                                                                                            |
-| ----------------- | ------------------------------------------------------------------------------------------------ |
-| **2.5 (current)** | Pack schema, registry, GLP-1 migration, 3 template packs, API list                               |
-| **3**             | Panel C agent selector; session-bound pack; multi-agent workspaces; pack-scoped Text2SQL prompts |
-| **4**             | Pack authoring CLI/UI; signed external packs                                                     |
+| Phase          | Scope                                                                                                                    |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **2.5 (done)** | Pack schema, registry, GLP-1 migration, 3 template packs, API list, §12 G1–G5                                            |
+| **3 (done)**   | Panel C selector; session-bound pack + lock; coordinator attribution; pack-scoped Text2SQL; multi-workspace session keys |
+| **4**          | Pack authoring CLI/UI; signed external packs (D21)                                                                       |
 
 ## Compliance notes
 

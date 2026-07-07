@@ -112,7 +112,9 @@ After setup, **start a new chat session** (or `/new`) so the updated system prom
 | `nrdl-reimburse`     | `nrdl-reimburse`           | `trustclaw/workspace/nrdl-reimburse`     |
 | `compliance-auditor` | `compliance-auditor`       | `trustclaw/workspace/compliance-auditor` |
 
-In **TRA Console**, use the **领域 Agent** dropdown above chat to bind a pack per session (`PUT /api/tra/session/agent-pack`), or switch the OpenClaw agent in the chat sidebar. Restart Gateway after `trustclaw:setup` so new agents appear.
+In **TrustClaw TRA Console**, use the **领域 Agent** dropdown above chat to bind a pack per session (`PUT /api/tra/session/agent-pack`), or switch the OpenClaw agent in the chat sidebar. Restart Gateway after `trustclaw:setup` so new agents appear.
+
+**Session keys:** OpenClaw passes full `sessionKey` values like `agent:main:<conversationId>`. The coordinator stores pack bindings under that key. Integrations that call `POST /api/agent/chat` with a bare `session_id` should also send `openclaw_agent_id` so bindings match the tool path (`trustclaw_tra_query`). Panel D shows `agent_pack_source` and mismatch hints when the sidebar agent differs from the locked pack.
 
 ## Operator smoke — platform regression
 

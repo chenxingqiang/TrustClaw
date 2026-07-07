@@ -14,10 +14,10 @@ export const zh_CN: TrustclawMessages = {
     language: "语言",
     langEn: "English",
     langZh: "中文",
-    chatFrameTitle: "OpenClaw 对话",
-    chatInControlUiTitle: "OpenClaw 对话",
+    chatFrameTitle: "TrustClaw 对话",
+    chatInControlUiTitle: "TrustClaw 对话",
     chatInControlUiBody:
-      "由 Control UI 嵌入。推荐在 Gateway Control UI 的 TRA 控制台标签页使用原生 Chat 工作台与可收起侧栏。",
+      "由 Control UI 嵌入。推荐在 Gateway Control UI 的 TrustClaw TRA 控制台标签页使用原生 Chat 工作台与可收起侧栏。",
     overviewAria: "TRA 审计宪章与双平面示意图",
     auditCharterTitle: "Fail-closed 审计契约",
     auditCharterLead:
@@ -40,7 +40,7 @@ export const zh_CN: TrustclawMessages = {
     auditPlaneStepD: "JSONL 管线阶段（合规轨迹 + 最近 Chat 链）",
     auditPlaneStepE: "哈希链凭证；链校验徽章",
     chatWorkbenchHint:
-      "受审计 Chat 在 OpenClaw Control UI → TRA Console 标签中心工作台运行；Agent 工具调用会实时回写本页 D/E。",
+      "受审计 Chat 在 Control UI → TrustClaw TRA 控制台标签中心工作台运行；Agent 工具调用会实时回写本页 D/E。",
     columnDataPlane: "数据平面 · 本地可信运行时",
     columnAuditPlane: "审计平面 · JSONL + 账本",
   },

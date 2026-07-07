@@ -8,6 +8,7 @@ import {
 } from "../../tra/session-agent-pack.js";
 import { getAgentPackRegistry } from "../agent-pack/registry.js";
 import type { ResolvedAgentPack } from "../agent-pack/schema.js";
+import { resolveCoordinatorSessionKey } from "./session-key.js";
 
 export type CoordinatorPackSource = "session" | "lock" | "openclaw_agent" | "default" | "request";
 
@@ -49,7 +50,10 @@ export function resolveCoordinatorAgentPack(params: {
     agentsDir: params.pluginConfig?.agentPacksDir,
     defaultPackId: params.pluginConfig?.defaultAgentPack,
   });
-  const sessionKey = params.sessionKey.trim();
+  const sessionKey = resolveCoordinatorSessionKey({
+    sessionKey: params.sessionKey,
+    openclawAgentId: params.openclawAgentId,
+  });
   const bindLock = params.bindLock === true;
   const suggested = resolveOpenClawSuggestedPack(registry, params.openclawAgentId);
 

@@ -145,6 +145,7 @@ describe("TRA chat MCA parity (G7)", () => {
             session_id: sessionId,
             message: "我可以用司美格鲁肽吗？",
             agent_pack_id: glp1Pack.id,
+            openclaw_agent_id: "main",
           });
         },
       } as IncomingMessage;
@@ -159,7 +160,7 @@ describe("TRA chat MCA parity (G7)", () => {
       expect(httpBody.agent_pack_source).toBe("request");
 
       const tool = createTrustclawTraQueryToolFactory(pluginConfig, { llm: CHAT_LLM })({
-        sessionKey: sessionId,
+        sessionKey: `agent:main:${sessionId}`,
         sessionId,
         agentId: "main",
         sandboxed: false,

@@ -4,6 +4,7 @@ import {
   resolveBoundAgentPack,
 } from "../../../trustclaw/runtime/agent-pack/index.js";
 import { TRUSTCLAW_TRA_WRITE_TOOL } from "../../../trustclaw/runtime/constants.js";
+import { resolveCoordinatorSessionKey } from "../../../trustclaw/runtime/coordinator/index.js";
 import type { Text2SqlLlmCaller } from "../../../trustclaw/runtime/pipeline/index.js";
 import type { TrustclawPluginConfig } from "../../../trustclaw/tra/config.js";
 import { resolveTrustclawPaths } from "../../../trustclaw/tra/config.js";
@@ -54,9 +55,12 @@ export function createTrustclawTraWriteToolFactory(
       async execute(_id: string, params: Record<string, unknown>) {
         const message = readMessageParam(params);
         const paths = resolveTrustclawPaths(pluginConfig);
-        const sessionId = resolveSessionId(ctx);
+        const sessionKey = resolveCoordinatorSessionKey({
+          sessionKey: resolveSessionId(ctx),
+          openclawAgentId: ctx.agentId,
+        });
         const agentPack = resolveBoundAgentPack({
-          sessionKey: sessionId,
+          sessionKey,
           openclawAgentId: ctx.agentId,
           pluginConfig,
         }).pack;
@@ -64,7 +68,7 @@ export function createTrustclawTraWriteToolFactory(
           {
             message,
             consentGranted: true,
-            sessionId,
+            sessionId: sessionKey,
             agentPackId: agentPack.id,
           },
           {

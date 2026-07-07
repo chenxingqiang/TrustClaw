@@ -46,7 +46,9 @@ describe("resolveCoordinatorAgentPack", () => {
   it("prefers session override over OpenClaw agent mapping", () => {
     const auditDir = mkdtempSync(path.join(tmpdir(), "tra-resolve-pack-"));
     try {
-      setSessionAgentPackBinding("sess_override", "glp1-eligibility", { auditDir });
+      setSessionAgentPackBinding("agent:compliance-auditor:sess_override", "glp1-eligibility", {
+        auditDir,
+      });
       const resolved = resolveCoordinatorAgentPack({
         sessionKey: "sess_override",
         openclawAgentId: "compliance-auditor",

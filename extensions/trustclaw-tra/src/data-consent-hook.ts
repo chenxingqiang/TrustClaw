@@ -3,6 +3,7 @@ import {
   TRUSTCLAW_TRA_QUERY_TOOL,
   TRUSTCLAW_TRA_WRITE_TOOL,
 } from "../../../trustclaw/runtime/constants.js";
+import { resolveCoordinatorSessionKey } from "../../../trustclaw/runtime/coordinator/index.js";
 import { hasAgentDomainGrant } from "../../../trustclaw/tra/agent-domain-grants.js";
 import type { TrustclawPluginConfig } from "../../../trustclaw/tra/config.js";
 import { resolveTrustclawPaths } from "../../../trustclaw/tra/config.js";
@@ -22,8 +23,15 @@ function readQuestion(params: Record<string, unknown>): string {
   return typeof params.message === "string" ? params.message.trim() : "";
 }
 
-function resolveSessionKey(sessionKey?: string, sessionId?: string): string {
-  return sessionKey?.trim() || sessionId?.trim() || "default";
+function resolveSessionKey(
+  sessionKey?: string,
+  sessionId?: string,
+  openclawAgentId?: string,
+): string {
+  return resolveCoordinatorSessionKey({
+    sessionKey: sessionKey?.trim() || sessionId?.trim() || "default",
+    openclawAgentId,
+  });
 }
 
 function truncateDescription(text: string, max = 256): string {
@@ -71,7 +79,7 @@ export function createTrustclawTraDataConsentHook(pluginConfig: TrustclawPluginC
 
     const paths = resolveTrustclawPaths(pluginConfig);
     const pathOverrides = { dbPath: paths.dbPath, auditDir: paths.auditDir };
-    const sessionKey = resolveSessionKey(ctx.sessionKey, ctx.sessionId);
+    const sessionKey = resolveSessionKey(ctx.sessionKey, ctx.sessionId, ctx.agentId);
     const question = readQuestion(event.params);
     const profile = buildTraHealthProfileSummary({ dbPath: paths.dbPath });
     const pack = resolvePackForHook(pluginConfig, sessionKey, ctx.agentId);

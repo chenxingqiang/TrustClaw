@@ -1,7 +1,10 @@
 import type { OpenClawPluginToolContext } from "openclaw/plugin-sdk/core";
 import { resolveBoundAgentPack } from "../../../trustclaw/runtime/agent-pack/index.js";
 import { TRUSTCLAW_TRA_QUERY_TOOL } from "../../../trustclaw/runtime/constants.js";
-import { withCoordinatorAttribution } from "../../../trustclaw/runtime/coordinator/index.js";
+import {
+  resolveCoordinatorSessionKey,
+  withCoordinatorAttribution,
+} from "../../../trustclaw/runtime/coordinator/index.js";
 import type { Text2SqlLlmCaller } from "../../../trustclaw/runtime/pipeline/index.js";
 import { runTrustclawChat } from "../../../trustclaw/runtime/pipeline/index.js";
 import type { TrustclawPluginConfig } from "../../../trustclaw/tra/config.js";
@@ -51,14 +54,17 @@ export function createTrustclawTraQueryToolFactory(
       async execute(_id: string, params: Record<string, unknown>) {
         const message = readMessageParam(params);
         const paths = resolveTrustclawPaths(pluginConfig);
-        const sessionId = resolveSessionId(ctx);
+        const sessionKey = resolveCoordinatorSessionKey({
+          sessionKey: resolveSessionId(ctx),
+          openclawAgentId: ctx.agentId,
+        });
         const coordinator = resolveBoundAgentPack({
-          sessionKey: sessionId,
+          sessionKey,
           openclawAgentId: ctx.agentId,
           pluginConfig,
         });
         const result = await runTrustclawChat(
-          { session_id: sessionId, message },
+          { session_id: sessionKey, message },
           {
             dbPath: paths.dbPath,
             auditDir: paths.auditDir,

@@ -660,7 +660,8 @@ node scripts/run-vitest.mjs trustclaw/runtime/rules/evaluate.test.ts
 - **R24（2026-07-06，Phase 3 + D13）**：RuntimeContext 携带 `agent_pack_source` / lock / mismatch；`tra-query-tool` 换 agent 锁包测试；Console 标题 TrustClaw 品牌化。
 - **R25（2026-07-07，Phase 3）**：`compliance-auditor` chat 无 `RULE_EVAL` 管道测试；MCA parity 断言 HTTP `request` / WS `session` 协调器归因；Panel D 实时展示 `agent_pack_source`。
 - **R26（2026-07-07，Phase 3 + D13）**：`nrdl-reimburse` 全阶段 chat 管道测试；Panel D `agent_pack_mismatch` + 建议 pack 提示；Control UI `tabs.tra` TrustClaw 品牌化。
-- **下一轮建议**：G8–G9（D23/D21 deferred）；D13 文档/侧栏 bundle 余量；D5 频道出站 `audit_trail_id`；multi-workspace coordinator。
+- **R27（2026-07-07，Phase 3 + D13）**：`resolveCoordinatorSessionKey` 将 bare `session_id` + `openclaw_agent_id` 规范为 `agent:<id>:<session>`；HTTP chat 可选 `openclaw_agent_id`；TRA Console shell i18n TrustClaw 对话文案。
+- **下一轮建议**：G8–G9（D23/D21 deferred）；D13 GETTING_STARTED 余量；D5 频道出站 `audit_trail_id`；Phase 3 里程碑收口。
 
 ---
 

@@ -5,6 +5,7 @@ import {
   resolveCoordinatorAgentPack,
   summarizeAgentPack,
 } from "../../../trustclaw/runtime/agent-pack/index.js";
+import { resolveCoordinatorSessionKey } from "../../../trustclaw/runtime/coordinator/index.js";
 import type { TrustclawPluginConfig } from "../../../trustclaw/tra/config.js";
 import { resolveTrustclawPaths } from "../../../trustclaw/tra/config.js";
 import {
@@ -47,20 +48,24 @@ export function createSessionAgentPackGetHandler(pluginConfig: TrustclawPluginCo
       const overrides = { dbPath: paths.dbPath, auditDir: paths.auditDir };
       const url = new URL(req.url ?? "/", "http://localhost");
       const openclawAgentId = url.searchParams.get("openclaw_agent_id")?.trim();
-      const resolved = resolveCoordinatorAgentPack({
+      const sessionKey = resolveCoordinatorSessionKey({
         sessionKey: sessionId,
+        openclawAgentId: openclawAgentId || undefined,
+      });
+      const resolved = resolveCoordinatorAgentPack({
+        sessionKey,
         openclawAgentId: openclawAgentId || undefined,
         pluginConfig,
         bindLock: false,
       });
       sendJson(res, 200, {
         status: "success",
-        session_id: sessionId,
+        session_id: sessionKey,
         agent_pack_id: resolved.pack.id,
         resolved_from: resolved.source,
         locked: resolved.locked,
         lock_pack_id: resolved.lock_pack_id,
-        session_override: getSessionAgentPackId(sessionId, overrides) ?? null,
+        session_override: getSessionAgentPackId(sessionKey, overrides) ?? null,
         openclaw_suggested_pack_id: resolved.openclaw_suggested_pack_id,
         agent_pack_mismatch: resolved.agent_pack_mismatch,
         pack: summarizeAgentPack(resolved.pack),

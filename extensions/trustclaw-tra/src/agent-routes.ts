@@ -1,7 +1,10 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { z } from "zod";
 import { resolveBoundAgentPack } from "../../../trustclaw/runtime/agent-pack/index.js";
-import { withCoordinatorAttribution } from "../../../trustclaw/runtime/coordinator/index.js";
+import {
+  resolveCoordinatorSessionKey,
+  withCoordinatorAttribution,
+} from "../../../trustclaw/runtime/coordinator/index.js";
 import type { Text2SqlLlmCaller } from "../../../trustclaw/runtime/pipeline/index.js";
 import { runTrustclawChat } from "../../../trustclaw/runtime/pipeline/index.js";
 import { hasAgentDomainGrant } from "../../../trustclaw/tra/agent-domain-grants.js";
@@ -14,6 +17,7 @@ const chatRequestSchema = z
     session_id: z.string().trim().min(1),
     message: z.string().trim().min(1),
     agent_pack_id: z.string().trim().min(1).optional(),
+    openclaw_agent_id: z.string().trim().min(1).optional(),
   })
   .strict();
 
@@ -53,9 +57,14 @@ export function createAgentChatHandler(
 
     const paths = pathOverrides(pluginConfig);
     const pathOverrides_ = { dbPath: paths.dbPath, auditDir: paths.auditDir };
-    const coordinator = resolveBoundAgentPack({
+    const sessionKey = resolveCoordinatorSessionKey({
       sessionKey: body.data.session_id,
+      openclawAgentId: body.data.openclaw_agent_id,
+    });
+    const coordinator = resolveBoundAgentPack({
+      sessionKey,
       requestedPackId: body.data.agent_pack_id,
+      openclawAgentId: body.data.openclaw_agent_id,
       pluginConfig,
     });
     if (!hasAgentDomainGrant(coordinator.pack.id, "tra.chat", pathOverrides_)) {
@@ -67,7 +76,11 @@ export function createAgentChatHandler(
       return true;
     }
     const result = await runTrustclawChat(
-      { ...body.data, agent_pack_id: coordinator.pack.id },
+      {
+        session_id: sessionKey,
+        message: body.data.message,
+        agent_pack_id: coordinator.pack.id,
+      },
       {
         dbPath: paths.dbPath,
         auditDir: paths.auditDir,

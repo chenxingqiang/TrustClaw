@@ -14,10 +14,10 @@ export const en: TrustclawMessages = {
     language: "Language",
     langEn: "English",
     langZh: "中文",
-    chatFrameTitle: "OpenClaw Chat",
-    chatInControlUiTitle: "OpenClaw Chat",
+    chatFrameTitle: "TrustClaw Chat",
+    chatInControlUiTitle: "TrustClaw Chat",
     chatInControlUiBody:
-      "Embedded from Control UI. Prefer the TRA Console tab in gateway Control UI for the native chat workbench with collapsible side rails.",
+      "Embedded from Control UI. Prefer the TrustClaw TRA Console tab in gateway Control UI for the native chat workbench with collapsible side rails.",
     overviewAria: "TRA audit charter and dual-plane map",
     auditCharterTitle: "Fail-closed audit contract",
     auditCharterLead:
@@ -43,7 +43,7 @@ export const en: TrustclawMessages = {
     auditPlaneStepD: "JSONL pipeline stages (compliance + latest chat trail)",
     auditPlaneStepE: "Hash-chained receipts; chain verify badge",
     chatWorkbenchHint:
-      "Audited Chat runs in OpenClaw Control UI → TRA Console tab (center workbench). Agent tool calls feed Panel D/E here in real time.",
+      "Audited Chat runs in Control UI → TrustClaw TRA Console tab (center workbench). Agent tool calls feed Panel D/E here in real time.",
     columnDataPlane: "Data plane · local trust runtime",
     columnAuditPlane: "Audit plane · JSONL + ledger",
   },

@@ -25,6 +25,7 @@ docker cp "$ROOT/scripts/lib/trustclaw-defaults.mjs" "$CONTAINER:/app/scripts/li
 docker cp "$ROOT/scripts/lib/trustclaw-agent-packs.mjs" "$CONTAINER:/app/scripts/lib/trustclaw-agent-packs.mjs"
 docker cp "$ROOT/scripts/lib/trustclaw-workspace-sync.mjs" "$CONTAINER:/app/scripts/lib/trustclaw-workspace-sync.mjs"
 docker cp "$ROOT/scripts/lib/tra-state-bootstrap.mjs" "$CONTAINER:/app/scripts/lib/tra-state-bootstrap.mjs"
+docker cp "$ROOT/scripts/lib/normalize-domain-agent-pack.mjs" "$CONTAINER:/app/scripts/lib/normalize-domain-agent-pack.mjs"
 docker cp "$DIR/scripts/init-config.mjs" "$CONTAINER:/opt/trustclaw/init-config.mjs"
 
 echo "==> Push plugin bundle (trustclaw-tra)"
@@ -60,6 +61,8 @@ const tra=cfg.plugins?.entries?.['trustclaw-tra']?.config||{};
 console.log('plugin:', Object.keys(cfg.plugins?.entries||{}).filter(k=>k.includes('trust')).join(', ')||'(none)');
 console.log('agentPacksDir:', tra.agentPacksDir||'(unset)');
 console.log('plugin dist:', fs.existsSync('/app/dist/extensions/trustclaw-tra/index.js')?'trustclaw-tra':'missing');
+const packs=fs.readdirSync(tra.agentPacksDir||'/home/node/.openclaw/agent-packs',{withFileTypes:true}).filter(e=>e.isDirectory()).map(e=>e.name).sort();
+console.log('agent-packs count:', packs.length, packs.filter(id=>id.startsWith('tra-')).length+' tra-*');
 "
 
 echo "==> Done. Hard-refresh http://127.0.0.1:\${APP_PORT:-8080}/trustclaw/"

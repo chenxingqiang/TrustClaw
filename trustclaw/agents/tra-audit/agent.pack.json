@@ -1,0 +1,57 @@
+{
+  "id": "tra-audit",
+  "version": "1.0.0",
+  "displayName": {
+    "zh-CN": "医保稽核",
+    "en": "Insurance Audit & Fraud Detection"
+  },
+  "domain": [
+    "audit",
+    "compliance",
+    "insurance"
+  ],
+  "openclaw": {
+    "agentId": "tra-audit"
+  },
+  "tools": {
+    "read": "trustclaw_tra_query"
+  },
+  "prompts": {
+    "system": "prompts/system.v1.md",
+    "text2sql": "prompts/text2sql.v1.md"
+  },
+  "data": {
+    "readTables": [
+      "clinical_diagnoses",
+      "lab_test_results",
+      "medication_history",
+      "user_profile",
+      "data_source_registry",
+      "medication_compliance_standards",
+      "medication_compliance_ast_rules"
+    ]
+  },
+  "rules": {
+    "engine": "ast-compliance"
+  },
+  "pipeline": {
+    "stages": [
+      "TEXT2SQL_GEN",
+      "DB_QUERY",
+      "RULE_EVAL",
+      "AGENT_DECISION",
+      "LEDGER_COMMIT"
+    ],
+    "decisionBuilder": "pass-through"
+  },
+  "consent": {
+    "read": {
+      "allowAlways": true
+    }
+  },
+  "audit": {
+    "businessComponent": "TRA.Agent.Audit",
+    "decisionComponent": "Agent.AuditDecision",
+    "ruleEvalComponent": "AgentRuntime.ExecRule"
+  }
+}

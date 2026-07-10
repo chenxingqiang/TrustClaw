@@ -1,0 +1,65 @@
+{
+  "id": "tra-maternity",
+  "version": "1.0.0",
+  "displayName": {
+    "zh-CN": "生育保险",
+    "en": "Maternity Insurance"
+  },
+  "domain": [
+    "maternity",
+    "insurance",
+    "reimbursement"
+  ],
+  "openclaw": {
+    "agentId": "tra-maternity"
+  },
+  "tools": {
+    "read": "trustclaw_tra_query",
+    "write": "trustclaw_tra_write"
+  },
+  "prompts": {
+    "system": "prompts/system.v1.md",
+    "text2sql": "prompts/text2sql.v1.md",
+    "personalWrite": "prompts/personal-write-sql.v1.md"
+  },
+  "data": {
+    "readTables": [
+      "clinical_diagnoses",
+      "lab_test_results",
+      "body_anthropometrics",
+      "user_profile",
+      "data_source_registry"
+    ],
+    "writeTables": [
+      "lab_test_results",
+      "body_anthropometrics"
+    ]
+  },
+  "rules": {
+    "engine": "nrdl-table",
+    "activeStandardHint": "glp1-nrdl-ast-handshake-v2"
+  },
+  "pipeline": {
+    "stages": [
+      "TEXT2SQL_GEN",
+      "DB_QUERY",
+      "RULE_EVAL",
+      "AGENT_DECISION",
+      "LEDGER_COMMIT"
+    ],
+    "decisionBuilder": "pass-through"
+  },
+  "consent": {
+    "read": {
+      "allowAlways": true
+    },
+    "write": {
+      "allowAlways": false
+    }
+  },
+  "audit": {
+    "businessComponent": "TRA.Agent.Maternity",
+    "decisionComponent": "Agent.MaternityDecision",
+    "ruleEvalComponent": "AgentRuntime.ExecRule"
+  }
+}

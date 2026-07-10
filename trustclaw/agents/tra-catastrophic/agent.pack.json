@@ -1,0 +1,61 @@
+{
+  "id": "tra-catastrophic",
+  "version": "1.0.0",
+  "displayName": {
+    "zh-CN": "大病保险",
+    "en": "Catastrophic Illness Insurance"
+  },
+  "domain": [
+    "catastrophic",
+    "insurance",
+    "reimbursement"
+  ],
+  "openclaw": {
+    "agentId": "tra-catastrophic"
+  },
+  "tools": {
+    "read": "trustclaw_tra_query"
+  },
+  "prompts": {
+    "system": "prompts/system.v1.md",
+    "text2sql": "prompts/text2sql.v1.md"
+  },
+  "data": {
+    "readTables": [
+      "clinical_diagnoses",
+      "lab_test_results",
+      "body_anthropometrics",
+      "medication_history",
+      "user_profile",
+      "data_source_registry",
+      "nrdl_drug_registry",
+      "nrdl_payment_rules",
+      "v_glp1_nrdl_check_snapshot"
+    ],
+    "snapshotView": "v_glp1_nrdl_check_snapshot"
+  },
+  "rules": {
+    "engine": "nrdl-table",
+    "activeStandardHint": "glp1-nrdl-ast-handshake-v2"
+  },
+  "pipeline": {
+    "stages": [
+      "TEXT2SQL_GEN",
+      "DB_QUERY",
+      "RULE_EVAL",
+      "AGENT_DECISION",
+      "LEDGER_COMMIT"
+    ],
+    "decisionBuilder": "pass-through"
+  },
+  "consent": {
+    "read": {
+      "allowAlways": true
+    }
+  },
+  "audit": {
+    "businessComponent": "TRA.Agent.Catastrophic",
+    "decisionComponent": "Agent.CatastrophicDecision",
+    "ruleEvalComponent": "AgentRuntime.ExecRule"
+  }
+}

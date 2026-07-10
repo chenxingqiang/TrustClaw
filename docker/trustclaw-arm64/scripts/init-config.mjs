@@ -6,10 +6,12 @@ import { spawnSync } from "node:child_process";
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { migrateLegacyWorkspaceDomainPacks } from "/app/scripts/lib/normalize-domain-agent-pack.mjs";
 import {
   isNonWritableAgentPacksDir,
   resolveTrustclawTraPluginConfig,
   seedBundledAgentPacksIfMissing,
+  seedDomainAgentPackWorkspace,
 } from "/app/scripts/lib/trustclaw-agent-packs.mjs";
 import { migrateTrustclawPluginEntry } from "/app/scripts/lib/trustclaw-defaults.mjs";
 import { syncWorkspaceTemplate } from "/app/scripts/lib/trustclaw-workspace-sync.mjs";
@@ -208,6 +210,30 @@ function warnMissingModelAuth(config) {
   );
 }
 
+function migrateLegacyWorkspaceDomainPacksTree() {
+  const workspaceAgentsDir = path.join(stateDir, "workspace", "trustclaw-agents");
+  const { migrated, skipped } = migrateLegacyWorkspaceDomainPacks(workspaceAgentsDir);
+  if (migrated.length > 0) {
+    console.log(`[trustclaw:docker] Migrated workspace domain packs: ${migrated.join(", ")}`);
+  }
+  if (skipped.length > 0) {
+    console.log(`[trustclaw:docker] Workspace domain packs already present: ${skipped.join(", ")}`);
+  }
+}
+
+function seedDomainAgentPackWorkspaceTree() {
+  const workspaceAgentsDir = path.join(stateDir, "workspace", "trustclaw-agents");
+  const { seeded, skipped } = seedDomainAgentPackWorkspace(bundledAgentsDir, workspaceAgentsDir);
+  if (seeded.length > 0) {
+    console.log(
+      `[trustclaw:docker] Seeded domain agent packs → ${workspaceAgentsDir}: ${seeded.join(", ")}`,
+    );
+  }
+  if (skipped.length > 0) {
+    console.log(`[trustclaw:docker] Kept existing workspace domain packs: ${skipped.join(", ")}`);
+  }
+}
+
 function seedOperatorAgentPacks(traEntry) {
   const targetDir = traEntry.config?.agentPacksDir;
   if (!targetDir) {
@@ -232,6 +258,8 @@ function main() {
   saveJson(configPath, merged);
   syncTrustclawWorkspaces();
   seedOperatorAgentPacks(merged.plugins.entries["trustclaw-tra"]);
+  migrateLegacyWorkspaceDomainPacksTree();
+  seedDomainAgentPackWorkspaceTree();
   warnMissingModelAuth(merged);
 
   const bootstrapScript = path.join(appRoot, "scripts/lib/tra-state-bootstrap.mjs");

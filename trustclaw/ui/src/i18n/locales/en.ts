@@ -94,9 +94,13 @@ export const en: TrustclawMessages = {
     },
     agentGrants: {
       title: "C · Domain agent authorization",
-      subtitle: "Per-agent scope grants with append-only AGENT_DOMAIN_GRANT audit history",
+      subtitle:
+        "Per Business Agent Pack scope grants with append-only AGENT_DOMAIN_GRANT audit history",
+      grantsSectionTitle: "Business Agent Pack grants",
+      grantsSectionSubtitle:
+        "{packCount} executable pack(s) today (3 business + 10 domain coordinators; create more in Panel C2). The logic-agent registry below is read-only metadata — grants remain pack-scoped.",
       description:
-        "Grant each Business Agent its own TRA scopes. Panels B/D/E/F and chat tools fail closed until granted (runtime decoupled from agents).",
+        "Grant each Business Agent Pack its own TRA scopes. Panels B/D/E/F and chat tools fail closed until granted (runtime decoupled from agents).",
       domain: "Domain",
       loading: "Loading…",
       ready: "Synced",
@@ -104,11 +108,11 @@ export const en: TrustclawMessages = {
       save: "Save grants",
       currentGrantAt: "Current grant since {time}",
       notGrantedNow: "No active grant",
-      historyTitle: "Authorization history (all domain agents)",
+      historyTitle: "Authorization history (Business Agent Pack)",
       historyEmpty:
         "No grant changes recorded yet. Saving scopes writes AGENT_DOMAIN_GRANT to audit JSONL.",
       historyTime: "Time",
-      historyAgent: "Domain agent",
+      historyAgent: "Business pack",
       historyScopes: "Scopes granted",
       historyAction: "Action",
       historyGranted: "Granted",
@@ -123,7 +127,7 @@ export const en: TrustclawMessages = {
       },
       registryTitle: "Logical agent registry (TRA)",
       registrySubtitle:
-        "Metadata rows from domain_agents — a separate layer from the 13 agent packs above",
+        "Metadata rows from domain_agents (~1000) — a separate layer from the {packCount} Business Agent Pack grant cards above",
       registryUnavailable: "domain_agents table is not present in the current TRA database.",
       registryEmpty: "No logical agents match the current filters.",
       registrySummary: "{total} logical agents (partial {partial} · false {false})",

@@ -78,3 +78,36 @@ export function resolveTrustclawTraPluginConfig(existingEntry, stateDir) {
     },
   };
 }
+
+/**
+ * Copy tra-* domain coordinator packs into workspace/trustclaw-agents for D24 pack_path alignment.
+ * Never overwrites an existing pack folder.
+ */
+export function seedDomainAgentPackWorkspace(bundledAgentsDir, workspaceAgentsDir) {
+  const seeded = [];
+  const skipped = [];
+  if (!existsSync(bundledAgentsDir)) {
+    return { seeded, skipped };
+  }
+  mkdirSync(workspaceAgentsDir, { recursive: true });
+  for (const entry of readdirSync(bundledAgentsDir, { withFileTypes: true })) {
+    if (!entry.isDirectory() && !entry.isSymbolicLink()) {
+      continue;
+    }
+    if (!entry.name.startsWith("tra-")) {
+      continue;
+    }
+    const packFile = path.join(bundledAgentsDir, entry.name, PACK_FILENAME);
+    if (!existsSync(packFile)) {
+      continue;
+    }
+    const targetDir = path.join(workspaceAgentsDir, entry.name);
+    if (existsSync(targetDir)) {
+      skipped.push(entry.name);
+      continue;
+    }
+    cpSync(path.join(bundledAgentsDir, entry.name), targetDir, { recursive: true });
+    seeded.push(entry.name);
+  }
+  return { seeded, skipped };
+}

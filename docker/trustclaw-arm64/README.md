@@ -178,3 +178,14 @@ docker pull chenxingqiang/trustclaw-app:arm64
 ## 分支
 
 基于 `trustclaw/f9da4165-base`（`440e3bdb`），分支 `trustclaw/docker-arm64`。
+
+### Sync 10 domain agent packs from container
+
+When the running container still has legacy `ptds-*` trees under `workspace/trustclaw-agents/`, pull and normalize them into the repo as `trustclaw/agents/tra-*`:
+
+```bash
+./docker/trustclaw-arm64/scripts/sync-domain-agent-packs-from-container.sh
+./docker/trustclaw-arm64/scripts/push-container-code.sh
+```
+
+After restart, `init-config.mjs` seeds missing `tra-*` packs into `~/.openclaw/agent-packs` and migrates legacy workspace folders to `tra-*`.

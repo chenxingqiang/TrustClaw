@@ -52,10 +52,12 @@ export function renderAgentGrants(
       </header>
       <div class="panel__body">
         <p class="panel-note">${escapeHtml(m.description)}</p>
+        <h3 class="panel-subtitle">${escapeHtml(m.grantsSectionTitle)}</h3>
+        <p class="panel-note panel-note--compact" data-testid="agent-grants-section-note">${escapeHtml(m.grantsSectionSubtitle.replace("{packCount}", "…"))}</p>
         <div data-testid="agent-grants-list" class="agent-grants-list"></div>
         <hr class="panel-divider" />
         <h3 class="panel-subtitle">${escapeHtml(m.registryTitle)}</h3>
-        <p class="panel-note panel-note--compact">${escapeHtml(m.registrySubtitle)}</p>
+        <p class="panel-note panel-note--compact" data-testid="domain-agents-section-note">${escapeHtml(m.registrySubtitle.replace("{packCount}", "…"))}</p>
         <div data-testid="domain-agents-host"></div>
         <hr class="panel-divider" />
         <h3 class="panel-subtitle">${escapeHtml(m.historyTitle)}</h3>
@@ -67,6 +69,12 @@ export function renderAgentGrants(
   const statusEl = root.querySelector<HTMLElement>('[data-testid="agent-grants-status"]')!;
   const listEl = root.querySelector<HTMLElement>('[data-testid="agent-grants-list"]')!;
   const registryHost = root.querySelector<HTMLElement>('[data-testid="domain-agents-host"]')!;
+  const grantsSectionNoteEl = root.querySelector<HTMLElement>(
+    '[data-testid="agent-grants-section-note"]',
+  )!;
+  const registrySectionNoteEl = root.querySelector<HTMLElement>(
+    '[data-testid="domain-agents-section-note"]',
+  )!;
   const historyHost = root.querySelector<HTMLElement>('[data-testid="agent-grant-history-host"]')!;
   const packById = new Map<string, AgentGrantPackRow>();
   let registryPackFilter = "";
@@ -150,6 +158,13 @@ export function renderAgentGrants(
         packIdsForRegistry.push(pack.id);
       }
       packIdsForRegistry.sort();
+      const packCount = String(data.packs.length);
+      if (grantsSectionNoteEl) {
+        grantsSectionNoteEl.textContent = m.grantsSectionSubtitle.replace("{packCount}", packCount);
+      }
+      if (registrySectionNoteEl) {
+        registrySectionNoteEl.textContent = m.registrySubtitle.replace("{packCount}", packCount);
+      }
 
       listEl.innerHTML = data.packs
         .map((pack) => {

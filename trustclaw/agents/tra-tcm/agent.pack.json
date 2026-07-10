@@ -1,0 +1,58 @@
+{
+  "id": "tra-tcm",
+  "version": "1.0.0",
+  "displayName": {
+    "zh-CN": "中医药医保报销",
+    "en": "TCM Insurance Reimbursement"
+  },
+  "domain": [
+    "tcm",
+    "nrdl",
+    "reimbursement"
+  ],
+  "openclaw": {
+    "agentId": "tra-tcm"
+  },
+  "tools": {
+    "read": "trustclaw_tra_query"
+  },
+  "prompts": {
+    "system": "prompts/system.v1.md",
+    "text2sql": "prompts/text2sql.v1.md"
+  },
+  "data": {
+    "readTables": [
+      "clinical_diagnoses",
+      "lab_test_results",
+      "medication_history",
+      "user_profile",
+      "data_source_registry",
+      "nrdl_drug_registry",
+      "nrdl_payment_rules"
+    ]
+  },
+  "rules": {
+    "engine": "nrdl-table",
+    "activeStandardHint": "glp1-nrdl-ast-handshake-v2"
+  },
+  "pipeline": {
+    "stages": [
+      "TEXT2SQL_GEN",
+      "DB_QUERY",
+      "RULE_EVAL",
+      "AGENT_DECISION",
+      "LEDGER_COMMIT"
+    ],
+    "decisionBuilder": "pass-through"
+  },
+  "consent": {
+    "read": {
+      "allowAlways": true
+    }
+  },
+  "audit": {
+    "businessComponent": "TRA.Agent.TCM",
+    "decisionComponent": "Agent.TCMDecision",
+    "ruleEvalComponent": "AgentRuntime.ExecRule"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "id": "tra-medical-assistance",
+  "version": "1.0.0",
+  "displayName": {
+    "zh-CN": "医疗救助",
+    "en": "Medical Financial Assistance"
+  },
+  "domain": [
+    "medical-assistance",
+    "social-welfare"
+  ],
+  "openclaw": {
+    "agentId": "tra-medical-assistance"
+  },
+  "tools": {
+    "read": "trustclaw_tra_query"
+  },
+  "prompts": {
+    "system": "prompts/system.v1.md",
+    "text2sql": "prompts/text2sql.v1.md"
+  },
+  "data": {
+    "readTables": [
+      "clinical_diagnoses",
+      "lab_test_results",
+      "user_profile",
+      "data_source_registry"
+    ]
+  },
+  "rules": {
+    "engine": "none"
+  },
+  "pipeline": {
+    "stages": [
+      "TEXT2SQL_GEN",
+      "DB_QUERY",
+      "AGENT_DECISION",
+      "LEDGER_COMMIT"
+    ],
+    "decisionBuilder": "pass-through"
+  },
+  "consent": {
+    "read": {
+      "allowAlways": true
+    }
+  },
+  "audit": {
+    "businessComponent": "TRA.Agent.MedicalAssistance",
+    "decisionComponent": "Agent.MedicalAssistanceDecision"
+  }
+}

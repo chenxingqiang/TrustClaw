@@ -680,7 +680,9 @@ node scripts/run-vitest.mjs trustclaw/runtime/rules/evaluate.test.ts
 - **R41（2026-07-07，D13 + Operator）**：`resolveTrustclawTraPluginConfig` 抽取 + 测试；`OPENCLAW_REUSE.md` 运营状态目录表；`GETTING_STARTED` 自动化证明清单扩充。
 - **R42（2026-07-08，Docker 对齐）**：`init-config.mjs` 复用 setup libs（skills 同步、`agent-packs` 种子化、`ptds→tra`）；`push-container-code.sh` 推送 agents/workspace/libs；README 漂移表。
 - **R43（2026-07-09，Docker）**：`agentPacksDir` 拒绝 `/app/trustclaw/agents` 与 `trustclaw-agents-merged`，规范到 `…/agent-packs`；smoke 增 Phase 4 API + plugin id 检查。
-- **下一轮建议**：容器 `push-container-code.sh` 验证 C2 可写；G8–G9（D23/D21 deferred）；D13 `~/.trustclaw` 迁移。
+- **R45（2026-07-10，Docker 领域 Pack）**：从容器 `workspace/trustclaw-agents/ptds-*` 同步 10 个 `tra-*` domain agent pack 到 `trustclaw/agents/`；`init-config` 种子化 `agent-packs` + workspace 迁移；Panel C 赋权卡增至 13。
+- **R44（2026-07-10，Panel C UX）**：Panel C 区分 Business Agent Pack 赋权（当前 3 个 bundled）与 domain_agents 逻辑目录（1000 条）；修正 stale「13 Pack」文案；`push-container-code.sh` 热推 UI。
+- **下一轮建议**：G8–G9（D23/D21 deferred）；D13 `~/.trustclaw` 迁移；Panel C2 新建 Pack 后赋权卡自动增多。
 
 ---
 

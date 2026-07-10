@@ -87,6 +87,8 @@ export type TrustclawMessages = {
     agentGrants: {
       title: string;
       subtitle: string;
+      grantsSectionTitle: string;
+      grantsSectionSubtitle: string;
       description: string;
       domain: string;
       loading: string;

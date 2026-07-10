@@ -91,9 +91,12 @@ export const zh_CN: TrustclawMessages = {
     },
     agentGrants: {
       title: "C · 领域 Agent 数据授权",
-      subtitle: "按 Agent 单独赋权；每次变更追加 AGENT_DOMAIN_GRANT 审计记录",
+      subtitle: "按 Business Agent Pack 单独赋权；每次变更追加 AGENT_DOMAIN_GRANT 审计记录",
+      grantsSectionTitle: "Business Agent Pack 赋权",
+      grantsSectionSubtitle:
+        "当前 {packCount} 个可执行 Pack（3 个 Business + 10 个领域协调 Pack；Panel C2 可新建更多）。下方逻辑 Agent 目录为只读元数据，赋权对象仍是 Pack。",
       description:
-        "为每个 Business Agent 单独赋权。未授权时 Panel B/D/E/F 与 Chat 工具将 fail-closed 阻断（TRA 与 Agent 解耦）。",
+        "为每个 Business Agent Pack 单独赋权。未授权时 Panel B/D/E/F 与 Chat 工具将 fail-closed 阻断（TRA 与 Agent 解耦）。",
       domain: "领域",
       loading: "加载中…",
       ready: "已同步",
@@ -101,10 +104,10 @@ export const zh_CN: TrustclawMessages = {
       save: "保存授权",
       currentGrantAt: "当前授权自 {time}",
       notGrantedNow: "当前未授权",
-      historyTitle: "授权历史（全部领域 Agent）",
+      historyTitle: "授权历史（Business Agent Pack）",
       historyEmpty: "尚无赋权变更记录。保存权限后会写入 AGENT_DOMAIN_GRANT 审计 JSONL。",
       historyTime: "时间",
-      historyAgent: "领域 Agent",
+      historyAgent: "Business Pack",
       historyScopes: "授予权限",
       historyAction: "操作",
       historyGranted: "已授权",
@@ -118,7 +121,8 @@ export const zh_CN: TrustclawMessages = {
         "tra.write": "TRA 写入工具",
       },
       registryTitle: "逻辑 Agent 目录（TRA 注册表）",
-      registrySubtitle: "domain_agents 表中的逻辑 Agent 元数据；与上方 13 个 Agent Pack 不同层",
+      registrySubtitle:
+        "domain_agents 表中的逻辑 Agent 元数据（约 1000 条）；与上方 {packCount} 个 Business Agent Pack 赋权层不同",
       registryUnavailable: "当前 TRA 数据库尚无 domain_agents 表。",
       registryEmpty: "无匹配的逻辑 Agent。",
       registrySummary: "共 {total} 个逻辑 Agent（partial {partial} · false {false}）",

@@ -129,3 +129,50 @@ describe("trustclaw-agent-packs", () => {
     }
   });
 });
+
+describe("normalize-domain-agent-pack", () => {
+  it("maps legacy ptds folder names to tra pack ids", async () => {
+    const mod = await import("../../scripts/lib/normalize-domain-agent-pack.mjs");
+    expect(mod.resolveTargetPackId("ptds-outpatient")).toBe("tra-outpatient");
+    expect(mod.resolveTargetPackId("tra-audit")).toBe("tra-audit");
+    expect(mod.resolveTargetPackId("glp1")).toBeNull();
+    expect(mod.DOMAIN_AGENT_PACK_IDS).toHaveLength(10);
+  });
+
+  it("normalizes legacy pack manifest tools and audit ids", async () => {
+    const mod = await import("../../scripts/lib/normalize-domain-agent-pack.mjs");
+    const pack = mod.normalizeLegacyPackManifest(
+      {
+        id: "ptds-pharmacy",
+        openclaw: { agentId: "ptds-pharmacy" },
+        tools: { read: "trustclaw_ptds_query" },
+        audit: { businessComponent: "PTDS.Agent.Pharmacy" },
+      },
+      "tra-pharmacy",
+    );
+    expect(pack.id).toBe("tra-pharmacy");
+    expect(pack.openclaw.agentId).toBe("tra-pharmacy");
+    expect(pack.tools.read).toBe("trustclaw_tra_query");
+    expect(pack.audit.businessComponent).toBe("TRA.Agent.Pharmacy");
+  });
+});
+
+describe("seedDomainAgentPackWorkspace", () => {
+  it("copies only tra-* packs into workspace trustclaw-agents", async () => {
+    const { seedDomainAgentPackWorkspace } =
+      await import("../../scripts/lib/trustclaw-agent-packs.mjs");
+    const root = mkdtempSync(path.join(tmpdir(), "tc-domain-workspace-"));
+    const bundled = path.join(root, "bundled");
+    const workspace = path.join(root, "workspace");
+    try {
+      writePackDir(bundled, "tra-audit", "tra-audit");
+      writePackDir(bundled, "glp1", "glp1-eligibility");
+      const result = seedDomainAgentPackWorkspace(bundled, workspace);
+      expect(result.seeded).toEqual(["tra-audit"]);
+      expect(existsSync(path.join(workspace, "tra-audit", "agent.pack.json"))).toBe(true);
+      expect(existsSync(path.join(workspace, "glp1", "agent.pack.json"))).toBe(false);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+});

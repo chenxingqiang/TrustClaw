@@ -1,0 +1,68 @@
+{
+  "id": "tra-outpatient",
+  "version": "1.0.0",
+  "displayName": {
+    "zh-CN": "门诊医保报销",
+    "en": "Outpatient Insurance Reimbursement"
+  },
+  "domain": [
+    "outpatient",
+    "insurance",
+    "reimbursement"
+  ],
+  "openclaw": {
+    "agentId": "tra-outpatient"
+  },
+  "tools": {
+    "read": "trustclaw_tra_query",
+    "write": "trustclaw_tra_write"
+  },
+  "prompts": {
+    "system": "prompts/system.v1.md",
+    "text2sql": "prompts/text2sql.v1.md",
+    "personalWrite": "prompts/personal-write-sql.v1.md"
+  },
+  "data": {
+    "readTables": [
+      "clinical_diagnoses",
+      "lab_test_results",
+      "body_anthropometrics",
+      "medication_history",
+      "user_profile",
+      "data_source_registry",
+      "nrdl_drug_registry",
+      "nrdl_payment_rules"
+    ],
+    "writeTables": [
+      "lab_test_results",
+      "daily_vitals"
+    ]
+  },
+  "rules": {
+    "engine": "nrdl-table",
+    "activeStandardHint": "glp1-nrdl-ast-handshake-v2"
+  },
+  "pipeline": {
+    "stages": [
+      "TEXT2SQL_GEN",
+      "DB_QUERY",
+      "RULE_EVAL",
+      "AGENT_DECISION",
+      "LEDGER_COMMIT"
+    ],
+    "decisionBuilder": "pass-through"
+  },
+  "consent": {
+    "read": {
+      "allowAlways": true
+    },
+    "write": {
+      "allowAlways": false
+    }
+  },
+  "audit": {
+    "businessComponent": "TRA.Agent.Outpatient",
+    "decisionComponent": "Agent.OutpatientDecision",
+    "ruleEvalComponent": "AgentRuntime.ExecRule"
+  }
+}

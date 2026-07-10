@@ -40,12 +40,33 @@ export function resolveOperatorAgentPacksDir(stateDir) {
   return path.join(stateDir, "agent-packs");
 }
 
+/**
+ * Image-bundled or retired Docker paths must not stay as writable agentPacksDir.
+ * Panel C2 mutations need a volume-backed directory under OPENCLAW_STATE_DIR.
+ */
+export function isNonWritableAgentPacksDir(agentsDir) {
+  const normalized = agentsDir.replaceAll("\\", "/").replace(/\/+$/, "");
+  if (!normalized) {
+    return true;
+  }
+  if (normalized === "/app/trustclaw/agents" || normalized.endsWith("/app/trustclaw/agents")) {
+    return true;
+  }
+  // Pre-R43 Docker bootstrap used a merged tree under state/; canonicalize to agent-packs.
+  if (normalized.endsWith("/state/trustclaw-agents-merged")) {
+    return true;
+  }
+  return false;
+}
+
 /** Merge trustclaw-tra plugin entry for setup; preserves operator agentPacksDir override. */
 export function resolveTrustclawTraPluginConfig(existingEntry, stateDir) {
   const existing = existingEntry ?? {};
+  const configured =
+    typeof existing.config?.agentPacksDir === "string" ? existing.config.agentPacksDir.trim() : "";
   const agentPacksDir =
-    typeof existing.config?.agentPacksDir === "string" && existing.config.agentPacksDir.trim()
-      ? existing.config.agentPacksDir.trim()
+    configured && !isNonWritableAgentPacksDir(configured)
+      ? configured
       : resolveOperatorAgentPacksDir(stateDir);
   return {
     ...existing,

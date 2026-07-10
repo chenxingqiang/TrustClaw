@@ -58,12 +58,13 @@
 
 路径仍使用 OpenClaw 约定（`~/.openclaw` / `~/.openclaw-dev`）；`pnpm trustclaw:setup` 写入：
 
-| 路径（default profile）     | 用途                                      |
-| --------------------------- | ----------------------------------------- |
-| `~/.openclaw/openclaw.json` | Gateway + `plugins.entries.trustclaw-tra` |
-| `~/.openclaw/agent-packs/`  | 运营可写 Agent Pack（Panel C2 mutations） |
-| `~/.openclaw/workspace-*/`  | 同步的 workspace 模板 + `skills/`         |
-| `~/.openclaw/state/`        | TRA SQLite、`tra-audit/`、`tra-evidence/` |
+| 路径（default profile）     | 用途                                                                      |
+| --------------------------- | ------------------------------------------------------------------------- |
+| `~/.openclaw/openclaw.json` | Gateway + `plugins.entries.trustclaw-tra`                                 |
+| `~/.openclaw/agent-packs/`  | 运营可写 Agent Pack（Panel C2 mutations）                                 |
+| Docker 同路径               | 容器内 `/home/node/.openclaw/agent-packs`（勿用 `/app/trustclaw/agents`） |
+| `~/.openclaw/workspace-*/`  | 同步的 workspace 模板 + `skills/`                                         |
+| `~/.openclaw/state/`        | TRA SQLite、`tra-audit/`、`tra-evidence/`                                 |
 
 Dev profile 将 `~/.openclaw` 换为 `~/.openclaw-dev`。全量 `~/.trustclaw` 迁移属 D13 后续项，须先更新 `DECISIONS.md`。
 

@@ -7,6 +7,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import {
+  isNonWritableAgentPacksDir,
   resolveTrustclawTraPluginConfig,
   seedBundledAgentPacksIfMissing,
 } from "/app/scripts/lib/trustclaw-agent-packs.mjs";
@@ -73,7 +74,8 @@ function resolveTrustclawTraEntry(existingEntries) {
   const migrated = migrateTrustclawPluginEntry({ ...existingEntries });
   const traEntry = resolveTrustclawTraPluginConfig(migrated["trustclaw-tra"], stateDir);
   const envPacksDir = envTrim("TRUSTCLAW_AGENT_PACKS_DIR");
-  if (envPacksDir) {
+  // Env may still point at image-bundled or legacy merged trees; ignore those.
+  if (envPacksDir && !isNonWritableAgentPacksDir(envPacksDir)) {
     traEntry.config = { ...(traEntry.config ?? {}), agentPacksDir: envPacksDir };
   }
   const envDefaultPack = envTrim("TRUSTCLAW_DEFAULT_AGENT_PACK");

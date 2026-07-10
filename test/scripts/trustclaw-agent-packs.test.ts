@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  isNonWritableAgentPacksDir,
   resolveOperatorAgentPacksDir,
   resolveTrustclawTraPluginConfig,
   seedBundledAgentPacksIfMissing,
@@ -41,6 +42,26 @@ describe("trustclaw-agent-packs", () => {
     );
     expect(merged.config?.agentPacksDir).toBe("/srv/packs");
     expect(merged.config?.defaultAgentPack).toBe("custom-pack");
+  });
+
+  it("rewrites image-bundled and legacy merged dirs to writable agent-packs", () => {
+    expect(isNonWritableAgentPacksDir("/app/trustclaw/agents")).toBe(true);
+    expect(isNonWritableAgentPacksDir("/home/node/.openclaw/state/trustclaw-agents-merged")).toBe(
+      true,
+    );
+    expect(isNonWritableAgentPacksDir("/home/node/.openclaw/agent-packs")).toBe(false);
+
+    const fromImage = resolveTrustclawTraPluginConfig(
+      { config: { agentPacksDir: "/app/trustclaw/agents" } },
+      "/home/node/.openclaw",
+    );
+    expect(fromImage.config?.agentPacksDir).toBe("/home/node/.openclaw/agent-packs");
+
+    const fromMerged = resolveTrustclawTraPluginConfig(
+      { config: { agentPacksDir: "/home/node/.openclaw/state/trustclaw-agents-merged" } },
+      "/home/node/.openclaw",
+    );
+    expect(fromMerged.config?.agentPacksDir).toBe("/home/node/.openclaw/agent-packs");
   });
 
   it("resolveOperatorAgentPacksDir nests under state dir", () => {

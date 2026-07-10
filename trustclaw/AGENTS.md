@@ -679,7 +679,8 @@ node scripts/run-vitest.mjs trustclaw/runtime/rules/evaluate.test.ts
 - **R40（2026-07-07，Operator + 验证）**：`trustclaw:setup` 同步 `skills/`（含 `tra-pack-operations`）；平台能力清单增 `pack_authoring_api` / `pack_authoring_ui`；复跑 12+39 vitest 全绿。
 - **R41（2026-07-07，D13 + Operator）**：`resolveTrustclawTraPluginConfig` 抽取 + 测试；`OPENCLAW_REUSE.md` 运营状态目录表；`GETTING_STARTED` 自动化证明清单扩充。
 - **R42（2026-07-08，Docker 对齐）**：`init-config.mjs` 复用 setup libs（skills 同步、`agent-packs` 种子化、`ptds→tra`）；`push-container-code.sh` 推送 agents/workspace/libs；README 漂移表。
-- **下一轮建议**：容器执行 `push-container-code.sh` 或 `build-arm64.sh`；G8–G9（D23/D21 deferred）；D13 `~/.trustclaw` 迁移。
+- **R43（2026-07-09，Docker）**：`agentPacksDir` 拒绝 `/app/trustclaw/agents` 与 `trustclaw-agents-merged`，规范到 `…/agent-packs`；smoke 增 Phase 4 API + plugin id 检查。
+- **下一轮建议**：容器 `push-container-code.sh` 验证 C2 可写；G8–G9（D23/D21 deferred）；D13 `~/.trustclaw` 迁移。
 
 ---
 

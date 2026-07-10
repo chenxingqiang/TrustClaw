@@ -106,15 +106,17 @@ cp app.env.dev.example app.env.dev
 
 **与本地 `main` 的常见漂移（2026-07 起）**
 
-| 本地已交付                                     | 旧容器镜像（未 rebuild / 未 push） |
-| ---------------------------------------------- | ---------------------------------- |
-| 插件 id `trustclaw-tra`（D25）                 | 仍为 `trustclaw-ptds`              |
-| `GET/POST /api/tra/agent-packs/*`              | 404                                |
-| Panel C2 pack authoring UI                     | 无                                 |
-| `agentPacksDir` → `state/agent-packs` + 种子化 | 未配置或仅 bundled 只读路径        |
-| workspace 同步含 `skills/`                     | 仅 SOUL/IDENTITY/AGENTS            |
+| 本地已交付                                           | 旧容器镜像（未 rebuild / 未 push）                                   |
+| ---------------------------------------------------- | -------------------------------------------------------------------- |
+| 插件 id `trustclaw-tra`（D25）                       | 仍为 `trustclaw-ptds`                                                |
+| `GET/POST /api/tra/agent-packs/*`                    | 404                                                                  |
+| Panel C2 pack authoring UI                           | 无                                                                   |
+| `agentPacksDir` → `~/.openclaw/agent-packs` + 种子化 | `/app/trustclaw/agents` 或 `state/trustclaw-agents-merged`（不可写） |
+| workspace 同步含 `skills/`                           | 仅 SOUL/IDENTITY/AGENTS                                              |
 
 对齐步骤：`./scripts/push-container-code.sh`（热更新）或 `./scripts/build-arm64.sh && docker compose up -d --force-recreate`（全量镜像）。
+
+`init-config.mjs` 会把镜像内 `/app/trustclaw/agents` 与遗留 `state/trustclaw-agents-merged` 改写为 volume 下可写的 `agent-packs/`（Panel C2 create/save/delete）。
 
 | 本地 state → 容器 | `./scripts/push-container-state.sh` | 将 `runtime-state/` 的 DB、merged packs、审计写回 volume |
 

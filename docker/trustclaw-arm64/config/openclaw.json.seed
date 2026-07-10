@@ -22,7 +22,6 @@
       "trustclaw-tra": {
         "enabled": true,
         "config": {
-          "agentPacksDir": "/app/trustclaw/agents",
           "defaultAgentPack": "glp1-eligibility"
         }
       },

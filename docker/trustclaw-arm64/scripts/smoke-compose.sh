@@ -47,15 +47,58 @@ if ! curl -fsS "http://127.0.0.1:${PORT}/healthz" >/dev/null; then
 fi
 
 echo "==> TRA Console http://127.0.0.1:${UI_PORT}/trustclaw/"
+UI_OK=0
 for _ in $(seq 1 15); do
   if curl -fsS "http://127.0.0.1:${UI_PORT}/trustclaw/" >/dev/null; then
     echo "trustclaw UI OK"
-    "${COMPOSE[@]}" ps
-    exit 0
+    UI_OK=1
+    break
   fi
   sleep 2
 done
 
-echo "TrustClaw UI check failed (is trustclaw:ui:build included in image?)"
-"${COMPOSE[@]}" logs --tail=80
-exit 1
+if [[ "$UI_OK" != "1" ]]; then
+  echo "TrustClaw UI check failed (is trustclaw:ui:build included in image?)"
+  "${COMPOSE[@]}" logs --tail=80
+  exit 1
+fi
+
+echo "==> Phase 4 agent-packs API http://127.0.0.1:${PORT}/api/tra/agent-packs"
+PACKS_JSON="$(curl -fsS "http://127.0.0.1:${PORT}/api/tra/agent-packs" || true)"
+if ! printf '%s' "$PACKS_JSON" | grep -q '"status":"success"'; then
+  echo "agent-packs API failed (expected trustclaw-tra + Phase 4 routes)"
+  echo "$PACKS_JSON" | head -c 400
+  echo
+  "${COMPOSE[@]}" logs --tail=80
+  exit 1
+fi
+if ! printf '%s' "$PACKS_JSON" | grep -q 'glp1-eligibility'; then
+  echo "agent-packs API missing default pack glp1-eligibility"
+  echo "$PACKS_JSON" | head -c 400
+  echo
+  exit 1
+fi
+echo "agent-packs API OK"
+
+echo "==> Plugin id in container config"
+CONTAINER="$("${COMPOSE[@]}" ps -q app 2>/dev/null || true)"
+if [[ -n "$CONTAINER" ]]; then
+  PLUGIN_IDS="$(docker exec "$CONTAINER" node -e "const c=require('/home/node/.openclaw/openclaw.json'); console.log(Object.keys(c.plugins?.entries||{}).filter(k=>k.includes('trust')).join(','))" 2>/dev/null || true)"
+  if [[ "$PLUGIN_IDS" != *trustclaw-tra* ]]; then
+    echo "Expected plugins.entries.trustclaw-tra, got: ${PLUGIN_IDS:-none}"
+    exit 1
+  fi
+  PACKS_DIR="$(docker exec "$CONTAINER" node -e "const c=require('/home/node/.openclaw/openclaw.json'); console.log(c.plugins?.entries?.['trustclaw-tra']?.config?.agentPacksDir||'')" 2>/dev/null || true)"
+  case "$PACKS_DIR" in
+    */agent-packs)
+      echo "agentPacksDir OK: $PACKS_DIR"
+      ;;
+    *)
+      echo "Expected writable …/agent-packs, got: ${PACKS_DIR:-unset}"
+      exit 1
+      ;;
+  esac
+fi
+
+"${COMPOSE[@]}" ps
+exit 0
